@@ -7,6 +7,6 @@ RUN apt-get --yes install openmpi-bin \
   openssh-server
 
 COPY . .
-RUN mpicc -o main main.c
+RUN mpicc -o main main.c -lm
 
 CMD mpirun --allow-run-as-root -np 4 main

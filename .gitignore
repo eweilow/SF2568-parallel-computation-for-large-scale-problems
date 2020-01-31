@@ -5,3 +5,5 @@ hw1/data/
 
 hw1/read.asv
 .vscode/
+
+*.m~

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <math.h>
 #include <string.h>
 #include "mpi.h"
@@ -10,7 +11,7 @@
 #define MAX_STEPS 1000
 
 #define INT int64_t
-#define FLOAT double
+#define FLOAT long double
 
 INT ceilDivide(INT top, INT divisor)
 {
@@ -49,22 +50,22 @@ void addImaginary(
   output->b = b_;
 }
 
-FLOAT lengthImaginary(
+FLOAT sqLengthImaginary(
   struct Imaginary *im
 ) {
-  return sqrt(im->a*im->a + im->b*im->b);
+  return im->a*im->a + im->b*im->b;
 }
 
 INT calculatePixel(
   FLOAT x,
   FLOAT y
 ) {
-  const FLOAT b = sqrt(2.0);
+  const FLOAT b = 2.0;
+  const FLOAT b2 = b * b;
 
   struct Imaginary m = {
     x, y
   };
-
 
   struct Imaginary z = {
     0.0, 0.0
@@ -72,16 +73,20 @@ INT calculatePixel(
 
   INT i = 0;
   for(; i < MAX_STEPS; i++) {
-    multiplyImaginary(&z, &z, &z);
-    addImaginary(&z, &m, &z);
+    // z_(i+1) = z_(i)^2 + (x, y)
+    multiplyImaginary(&z, &z, &z); // z = z^2
+    addImaginary(&z, &m, &z); // z = z + m
 
-    if(lengthImaginary(&z) > b) {
+    // |z_n| < b ∀n
+    if(sqLengthImaginary(&z) >= b2) {
       break;
     }
   }
 
   return i;
 }
+
+#define TIME() ((double) (clock())) / CLOCKS_PER_SEC;
 
 void main(int argc, char **argv)
 {
@@ -95,6 +100,9 @@ void main(int argc, char **argv)
   divideData(N, nodeCount, &columnsPerNode, &actualSize);
 
   INT pixelsPerNode = columnsPerNode * actualSize;
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  double startTime = TIME();
 
   INT *global_columns = NULL;
   if (rank == 0)
@@ -114,9 +122,15 @@ void main(int argc, char **argv)
   INT *node_columns = malloc(sizeof(INT) * columnsPerNode);
   MPI_Scatter(global_columns, columnsPerNode, MPI_INT64_T, node_columns, columnsPerNode, MPI_INT64_T, 0, MPI_COMM_WORLD);
 
-  const FLOAT cx = -0.25;
-  const FLOAT cy = 0.0;
-  const FLOAT scale = 0.1;
+  /*
+  const FLOAT cx = -0.9973;
+  const FLOAT cy = -0.2875;
+  const FLOAT scale = 15000;
+  */
+
+  const FLOAT cx = -0.9973;
+  const FLOAT cy = -0.2875;
+  const FLOAT scale = 15000;
 
   INT *node_data = malloc(sizeof(INT) * pixelsPerNode);
   for (INT i = 0; i < columnsPerNode; i++)
@@ -125,8 +139,8 @@ void main(int argc, char **argv)
     for(INT y = 0; y < actualSize; y++) {
       INT position = i * actualSize + y;
 
-      FLOAT x_ = ((FLOAT)x / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 * scale + cx;
-      FLOAT y_ = ((FLOAT)y / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 * scale + cy;
+      FLOAT x_ = ((FLOAT)x / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 / scale + cx;
+      FLOAT y_ = ((FLOAT)y / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 / scale + cy;
       node_data[position] = calculatePixel(x_, y_);
       // FLOAT r = sqrt(x_*x_ + y_*y_);
       // node_data[position] = (INT) ceil(1000.0 * cos(r / (sqrt(2.0)) * 3.141592 * 2.0));
@@ -140,6 +154,11 @@ void main(int argc, char **argv)
   }
 
   MPI_Gather(node_data, pixelsPerNode, MPI_INT64_T, final_data, pixelsPerNode, MPI_INT64_T, 0, MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+  double endTime = TIME();
+  if(rank == 0) {
+    printf("%d nodes, %.4lf ms\n", nodeCount, 1000.0*(endTime - startTime));
+  }
 
   if (rank == 0)
   {
@@ -152,8 +171,17 @@ void main(int argc, char **argv)
       }
       printf("\n");
     }
-*/
+*/  
+    const double minX = cx - 1.0/scale;
+    const double maxX = cx + 1.0/scale;
+    const double minY = cy - 1.0/scale;
+    const double maxY = cy + 1.0/scale;
+
     FILE* file = fopen("/etc/data/data.bin", "w");
+    fwrite(&minX, sizeof(double), 1, file);
+    fwrite(&maxX, sizeof(double), 1, file);
+    fwrite(&minY, sizeof(double), 1, file);
+    fwrite(&maxY, sizeof(double), 1, file);
     fwrite(&actualSize, sizeof(INT), 1, file);
     fwrite(final_data, sizeof(INT), actualSize*actualSize, file);
     fclose(file);

@@ -5,111 +5,160 @@
 #include "mpi.h"
 #include <unistd.h>
 
-#define N 7
+#define N 2000
 
-int ceilDivide(int top, int divisor)
+#define MAX_STEPS 1000
+
+#define INT int64_t
+#define FLOAT double
+
+INT ceilDivide(INT top, INT divisor)
 {
   return top / divisor + (top % divisor != 0);
 }
 
-main(int argc, char **argv)
+void divideData(INT requestSize, INT nodeCount, INT *columnsPerNode, INT *actualSize) {
+  *columnsPerNode = ceilDivide(requestSize, nodeCount);
+  *actualSize = *columnsPerNode * nodeCount;
+}
+
+struct Imaginary {
+  FLOAT a;
+  FLOAT b;
+};
+
+void multiplyImaginary(
+  struct Imaginary *left,
+  struct Imaginary *right,
+  struct Imaginary *output
+) {
+  FLOAT a_ = left->a * right->a - left->b*right->b;
+  FLOAT b_ = left->b * right->a + left->a*right->b;
+  output->a = a_;
+  output->b = b_;
+}
+
+void addImaginary(
+  struct Imaginary *left,
+  struct Imaginary *right,
+  struct Imaginary *output
+) {
+  FLOAT a_ = left->a + right->a;
+  FLOAT b_ = left->b + right->b;
+  output->a = a_;
+  output->b = b_;
+}
+
+FLOAT lengthImaginary(
+  struct Imaginary *im
+) {
+  return sqrt(im->a*im->a + im->b*im->b);
+}
+
+INT calculatePixel(
+  FLOAT x,
+  FLOAT y
+) {
+  const FLOAT b = sqrt(2.0);
+
+  struct Imaginary m = {
+    x, y
+  };
+
+
+  struct Imaginary z = {
+    0.0, 0.0
+  };
+
+  INT i = 0;
+  for(; i < MAX_STEPS; i++) {
+    multiplyImaginary(&z, &z, &z);
+    addImaginary(&z, &m, &z);
+
+    if(lengthImaginary(&z) > b) {
+      break;
+    }
+  }
+
+  return i;
+}
+
+void main(int argc, char **argv)
 {
-  int rank, size, tag, rc, i;
-  MPI_Status status;
-  char message[20];
-  rc = MPI_Init(&argc, &argv);
-  rc = MPI_Comm_size(MPI_COMM_WORLD, &size);
-  rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  tag = 100;
+  int rank, nodeCount;
 
-  int columns_per_proc = ceilDivide(N, size);
-  int real_size = columns_per_proc * size;
+  MPI_Init(&argc, &argv);
+  MPI_Comm_size(MPI_COMM_WORLD, &nodeCount);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-  int elements_per_proc = columns_per_proc * real_size;
+  INT columnsPerNode, actualSize;
+  divideData(N, nodeCount, &columnsPerNode, &actualSize);
 
-  int *global_columns = NULL;
+  INT pixelsPerNode = columnsPerNode * actualSize;
+
+  INT *global_columns = NULL;
   if (rank == 0)
   {
-    printf("columns_per_proc: %d\n", columns_per_proc);
-    printf("elements_per_proc: %d\n", elements_per_proc);
-    printf("real_size: %d\n", real_size);
-    printf("real_size*real_size: %d\n", real_size*real_size);
-    printf("elements_per_proc*size: %d\n", elements_per_proc*size);
-    global_columns = malloc(sizeof(int) * real_size);
-    for (int i = 0; i < real_size; i++)
+    printf("columnsPerNode: %d\n", columnsPerNode);
+    printf("pixelsPerNode: %d\n", pixelsPerNode);
+    printf("actualSize: %d\n", actualSize);
+    printf("actualSize*actualSize: %d\n", actualSize*actualSize);
+    printf("pixelsPerNode*nodeCount: %d\n", pixelsPerNode*nodeCount);
+    global_columns = malloc(sizeof(INT) * actualSize);
+    for (INT i = 0; i < actualSize; i++)
     {
       global_columns[i] = i;
     }
   }
 
-  int *node_columns = malloc(sizeof(int) * columns_per_proc);
-  MPI_Scatter(
-      global_columns,
-      columns_per_proc,
-      MPI_INT,
-      node_columns,
-      columns_per_proc,
-      MPI_INT,
-      0,
-      MPI_COMM_WORLD);
+  INT *node_columns = malloc(sizeof(INT) * columnsPerNode);
+  MPI_Scatter(global_columns, columnsPerNode, MPI_INT64_T, node_columns, columnsPerNode, MPI_INT64_T, 0, MPI_COMM_WORLD);
 
-  float *node_data = malloc(sizeof(float) * elements_per_proc);
-  for (int i = 0; i < columns_per_proc; i++)
+  const FLOAT cx = -0.25;
+  const FLOAT cy = 0.0;
+  const FLOAT scale = 0.1;
+
+  INT *node_data = malloc(sizeof(INT) * pixelsPerNode);
+  for (INT i = 0; i < columnsPerNode; i++)
   {
-    int x = node_columns[i];
-    for(int y = 0; y < real_size; y++) {
-      int position = i * real_size + y;
+    INT x = node_columns[i];
+    for(INT y = 0; y < actualSize; y++) {
+      INT position = i * actualSize + y;
 
-      float x_ = (float)x;
-      float y_ = (float)y;
-      float r = sqrt(x_*x_ + y_*y_);
-      node_data[position] = cos(r / (float)real_size * 3.141592 * 2.0);
+      FLOAT x_ = ((FLOAT)x / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 * scale + cx;
+      FLOAT y_ = ((FLOAT)y / ((FLOAT) actualSize - 1.0) - 0.5) * 2.0 * scale + cy;
+      node_data[position] = calculatePixel(x_, y_);
+      // FLOAT r = sqrt(x_*x_ + y_*y_);
+      // node_data[position] = (INT) ceil(1000.0 * cos(r / (sqrt(2.0)) * 3.141592 * 2.0));
     }
   }
 
-  float* final_data = NULL;
+  INT* final_data = NULL;
   if (rank == 0)
   {
-    final_data = malloc(sizeof(float) * elements_per_proc * size);
+    final_data = malloc(sizeof(INT) * pixelsPerNode * nodeCount);
   }
-  MPI_Gather(node_data, elements_per_proc, MPI_FLOAT, final_data, elements_per_proc, MPI_FLOAT, 0,
-             MPI_COMM_WORLD);
-  // Compute the total average of all numbers.
+
+  MPI_Gather(node_data, pixelsPerNode, MPI_INT64_T, final_data, pixelsPerNode, MPI_INT64_T, 0, MPI_COMM_WORLD);
+
   if (rank == 0)
   {
-    for (int y = 0; y < real_size; y++)
+/*
+    for (INT  y = 0; y < actualSize; y++)
     {
-      for (int x = 0; x < real_size; x++)
+      for (INT  x = 0; x < actualSize; x++)
       {
-        printf("%8.2f", final_data[x*real_size + y]);
+        printf("%8ld", final_data[x*actualSize + y]);
       }
       printf("\n");
     }
+*/
+    FILE* file = fopen("/etc/data/data.bin", "w");
+    fwrite(&actualSize, sizeof(INT), 1, file);
+    fwrite(final_data, sizeof(INT), actualSize*actualSize, file);
+    fclose(file);
   }
 
-  /*
 
-  int elements = size;
-  int elements_per_proc = size / size;
-  float sub_avg = 0.5;
-
-  // Gather all partial averages down to the root process
-  float *sub_avgs = NULL;
-  if (rank == 0)
-  {
-    sub_avgs = malloc(sizeof(float) * size);
-  }
-  MPI_Gather(&sub_avg, 1, MPI_FLOAT, sub_avgs, 1, MPI_FLOAT, 0,
-             MPI_COMM_WORLD);
-
-  // Compute the total average of all numbers.
-  if (rank == 0)
-  {
-    for (int i = 0; i < size; i++)
-    {
-      printf("node %d reports %.4f\n", i, sub_avgs[i]);
-    }
-  }*/
-
-  rc = MPI_Finalize();
+  MPI_Finalize();
 }

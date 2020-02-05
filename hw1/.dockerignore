@@ -1,1 +1,6 @@
 data
+plots
+*.png
+Dockerfile
+*.m
+*.asv

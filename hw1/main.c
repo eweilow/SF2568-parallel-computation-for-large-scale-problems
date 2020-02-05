@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
@@ -6,12 +7,12 @@
 #include "mpi.h"
 #include <unistd.h>
 
-#define N 2000
+// #define N 10
 
 #define MAX_STEPS 1000
 
 #define INT int64_t
-#define FLOAT long double
+#define FLOAT double
 
 INT ceilDivide(INT top, INT divisor)
 {
@@ -90,6 +91,15 @@ INT calculatePixel(
 
 void main(int argc, char **argv)
 {
+  
+  char *endPtr;
+  int N = strtol(argv[2], &endPtr, 10);
+
+  FLOAT cx = (FLOAT) strtod(argv[3], &endPtr);
+  FLOAT cy = (FLOAT) strtod(argv[4], &endPtr);
+  FLOAT scale = (FLOAT) strtod(argv[5], &endPtr);
+  
+
   int rank, nodeCount;
 
   MPI_Init(&argc, &argv);
@@ -100,6 +110,14 @@ void main(int argc, char **argv)
   divideData(N, nodeCount, &columnsPerNode, &actualSize);
 
   INT pixelsPerNode = columnsPerNode * actualSize;
+
+  if(rank == 0) {
+    printf("Name: %s\n", argv[1]);
+    printf("Size: %d\n", N);
+    printf("cx: %lf\n", cx);
+    printf("cy: %lf\n", cy);
+    printf("scale: %lf\n", scale);
+  }
 
   MPI_Barrier(MPI_COMM_WORLD);
   double startTime = TIME();
@@ -128,9 +146,9 @@ void main(int argc, char **argv)
   const FLOAT scale = 15000;
   */
 
-  const FLOAT cx = -0.9973;
-  const FLOAT cy = -0.2875;
-  const FLOAT scale = 15000;
+  // const FLOAT cx = -0.9973;
+  // const FLOAT cy = -0.2875;
+  // const FLOAT scale = 15000;
 
   INT *node_data = malloc(sizeof(INT) * pixelsPerNode);
   for (INT i = 0; i < columnsPerNode; i++)
@@ -144,6 +162,12 @@ void main(int argc, char **argv)
       node_data[position] = calculatePixel(x_, y_);
       // FLOAT r = sqrt(x_*x_ + y_*y_);
       // node_data[position] = (INT) ceil(1000.0 * cos(r / (sqrt(2.0)) * 3.141592 * 2.0));
+    }
+
+    const INT printSteps = 25;
+    if((i + 1 + printSteps) % printSteps == 0) {
+      FLOAT percentage = ((FLOAT) i + 1) / ((FLOAT) columnsPerNode) * (FLOAT)100.0;
+      printf("%d %.2lf %% done\n", rank, percentage);
     }
   }
 
@@ -177,7 +201,10 @@ void main(int argc, char **argv)
     const double minY = cy - 1.0/scale;
     const double maxY = cy + 1.0/scale;
 
-    FILE* file = fopen("/etc/data/data.bin", "w");
+    char name[100];
+    sprintf(name, "/etc/data/%s.bin", argv[1]);
+
+    FILE* file = fopen(name, "w");
     fwrite(&minX, sizeof(double), 1, file);
     fwrite(&maxX, sizeof(double), 1, file);
     fwrite(&minY, sizeof(double), 1, file);

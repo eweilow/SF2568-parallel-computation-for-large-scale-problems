@@ -36,17 +36,35 @@ extern double f(const double x){
       - the last ghost point on p = P-1 holds u(1).
    Hence, all local vectors hold I elements while u has I+2 elements.
 */
+#define A 2
+
 INT* mu(INT m) {
 
 }
 
-INT* muInverse(INT p, INT i){
-   return (L − a)*p + MIN(R, p) + i;
+INT* muInverse(INT p, INT i, int P){
+
+   return (L − A)*p + MIN(R, p) + i;
 }
 
-int* startGuess(int size){
-  static int startGuessArr[size];
-  return startGuessArr;
+int recieve(INT p){
+  MPI_Recieve(&u0,
+  1,
+  MPI_DOUBLE,
+  p-1,
+  0,   // TAG
+  MPI_COMM_WORLD,
+  MPI_STATUS_IGNORE);
+  return u0;
+}
+
+void send(int* data, INT p) {
+    data,
+    1,
+    MPI_DOUBLE,
+    p+1,
+    0, // TAG
+    MPI_COMM_WORLD)
 }
 
 int main(int argc, char *argv[])
@@ -54,7 +72,7 @@ int main(int argc, char *argv[])
 /* local variable */
 
 /* Initialize MPI */
-  int P, p
+  int P, p, M, L, R, I;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &P);
   MPI_Comm_rank(MPI_COMM_WORLD, &p);
@@ -62,7 +80,11 @@ int main(int argc, char *argv[])
      fprintf(stdout, "Too few discretization points...\n");
      exit(1);
   }
-/* Compute local indices for data distribution */
+  /* Compute local indices for data distribution */
+  M = N + (P-1)*A;
+  L = M/P;
+  R = R % P;
+  I = p < R ? L+1 : L;
 
 /* arrays */
   unew = (double *) malloc(I*sizeof(double));
@@ -74,13 +96,24 @@ int main(int argc, char *argv[])
 
 /* Jacobi iteration */
   for (step = 0; step < SMX; step++) {
-/* RB communication of overlap */
-    MPI_Recieve(p-1, );
-/* local iteration step */
-/*
-	    unew[i] = (u[i]+u[i+2]-h*h*ff[i])/(2.0-h*h*rr[i]);
-*/
+
+  /* RB communication of overlap */
+    if (p == 0) {
+
+    } else {
+
+      u[0] = recieve(p);
     }
+    /* local iteration step */
+    for(int i=0; i<I; i++) {
+    	    unew[i] = (u[i]+u[i+2]-h*h*ff[i])/(2.0-h*h*rr[i]);
+    }
+    if (p == P-1) {
+
+    } else {
+      send(u[I-1], p);
+    }
+  }
 
 /* output for graphical representation */
 /* Instead of using gather (which may lead to excessive memory requirements

@@ -98,6 +98,8 @@ int main(int argc, char *argv[])
   for (step = 0; step < SMX; step++) {
 
   /* RB communication of overlap */
+
+  // No recieve for p = 0, use boundary condition instead u(0) = 0
     if (p == 0) {
 
     } else {
@@ -108,6 +110,8 @@ int main(int argc, char *argv[])
     for(int i=0; i<I; i++) {
     	    unew[i] = (u[i]+u[i+2]-h*h*ff[i])/(2.0-h*h*rr[i]);
     }
+
+    // No send for p = P-1, just set u(1) = 0 from boundary condition
     if (p == P-1) {
 
     } else {

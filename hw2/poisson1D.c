@@ -47,8 +47,10 @@ INT* muInverse(INT p, INT i, int P){
    return (L − A)*p + MIN(R, p) + i;
 }
 
-int recieve(INT p){
-  MPI_Recieve(&u0,
+double recieve(INT p){
+  double u0;
+  MPI_Recieve(
+    &u0,
   1,
   MPI_DOUBLE,
   p-1,
@@ -58,11 +60,12 @@ int recieve(INT p){
   return u0;
 }
 
-void send(int* data, INT p) {
-    data,
+void send(int data, INT p) {
+  MPI_Send(
+    &data,
     1,
     MPI_DOUBLE,
-    p+1,
+    p,
     0, // TAG
     MPI_COMM_WORLD)
 }
@@ -83,7 +86,7 @@ int main(int argc, char *argv[])
   /* Compute local indices for data distribution */
   M = N + (P-1)*A;
   L = M/P;
-  R = R % P;
+  R = L % P;
   I = p < R ? L+1 : L;
 
 /* arrays */
@@ -98,7 +101,26 @@ int main(int argc, char *argv[])
   for (step = 0; step < SMX; step++) {
 
   /* RB communication of overlap */
-
+  if (p % 2 == 0) { // red phase
+    if (p + 1 < P){
+        send(unew[I-1], p+1);
+        u[I+2-1] = recieve(p+1);
+    }
+    if (p - 1 >= 0) {
+      send(unew[0], p-1);
+      u[0] = recieve(p-1);
+    }
+  }
+  else { // black phase
+    if (p + 1 < P){
+        u[I+2-1] = recieve(p+1);
+        send(unew[I-1], p+1);
+    }
+    if (p - 1 >= 0) {
+      u[0] = recieve(p-1);
+      send(unew[0], p-1);
+    }
+  }
   // No recieve for p = 0, use boundary condition instead u(0) = 0
     if (p == 0) {
 
@@ -118,6 +140,7 @@ int main(int argc, char *argv[])
       send(u[I-1], p);
     }
   }
+}
 
 /* output for graphical representation */
 /* Instead of using gather (which may lead to excessive memory requirements

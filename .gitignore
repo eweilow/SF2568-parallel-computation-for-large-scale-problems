@@ -1,0 +1,9 @@
+
+hw1/data/
+
+*.png
+
+hw1/read.asv
+.vscode/
+
+*.m~

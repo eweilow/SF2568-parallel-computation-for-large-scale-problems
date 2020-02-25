@@ -1,149 +1,218 @@
-/* Reaction-diffusion equation in 1D
- * Solution by Jacobi iteration
- * simple MPI implementation
- *
- * C Michael Hanke 2006-12-12
- */
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
+#include <string.h>
+#include "mpi.h"
+#include <unistd.h>
 
 #define INT int64_t
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define DEBUG_COMM 0
 
-/* Use MPI */
-#include "mpi.h"
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* define problem to be solved */
-#define N 100   /* number of inner grid points */
-#define SMX 100000 /* number of iterations */
+#define N 1000      /* number of inner grid points */
+#define SMX 1000000 /* number of iterations */
+#define A 0
+
+#define PI M_PI
 
 /* implement coefficient functions */
-extern double r(const double x){
-  return x*x;
+double r(const double x)
+{
+  return -x - 1.0;
 }
 
-extern double f(const double x){
-  return 0;
+double f(const double x)
+{
+  return 2.0 - x * r(x) * (x - 1.0);
 }
 
-/* We assume linear data distribution. The formulae according to the lecture
-   are:
-      L = N/P;
-      R = N%P;
-      I = (N+P-p-1)/P;    (number of local elements)
-      n = p*L+MIN(p,R)+i; (global index for given (p,i)
-   Attention: We use a small trick for introducing the boundary conditions:
-      - The first ghost point on p = 0 holds u(0);
-      - the last ghost point on p = P-1 holds u(1).
-   Hence, all local vectors hold I elements while u has I+2 elements.
-*/
-#define A 2
-
-INT* mu(INT m) {
-
+INT globalIndex(INT L, INT R, INT p, INT localIndex)
+{
+  return L * p + MIN(R, p) + localIndex;
 }
 
-INT* muInverse(INT p, INT i, int P){
-
-   return (L − A)*p + MIN(R, p) + i;
-}
-
-double recieve(INT p){
+double custom_recieve(INT current, INT p)
+{
+  if (DEBUG_COMM)
+  {
+    printf("WAIT %d <- %d\n", current, p);
+  }
   double u0;
-  MPI_Recieve(
-    &u0,
-  1,
-  MPI_DOUBLE,
-  p-1,
-  0,   // TAG
-  MPI_COMM_WORLD,
-  MPI_STATUS_IGNORE);
+  MPI_Recv(
+      &u0,
+      1,
+      MPI_DOUBLE,
+      p,
+      0, // TAG
+      MPI_COMM_WORLD,
+      MPI_STATUS_IGNORE);
+  if (DEBUG_COMM)
+  {
+    printf("DONE WAIT %d <- %d, %.8lf\n", current, p, u0);
+  }
   return u0;
 }
 
-void send(int data, INT p) {
+void custom_send(double data, INT current, INT p)
+{
+  if (DEBUG_COMM)
+  {
+    printf("SEND %d -> %d, %.8lf\n", current, p, data);
+  }
   MPI_Send(
-    &data,
-    1,
-    MPI_DOUBLE,
-    p,
-    0, // TAG
-    MPI_COMM_WORLD)
+      &data,
+      1,
+      MPI_DOUBLE,
+      p,
+      0, // TAG
+      MPI_COMM_WORLD);
+  if (DEBUG_COMM)
+  {
+    printf("DONE SEND %d -> %d\n", current, p);
+  }
 }
 
-int main(int argc, char *argv[])
+void main(int argc, char **argv)
 {
-/* local variable */
-
-/* Initialize MPI */
+  /* Initialize MPI */
   int P, p, M, L, R, I;
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &P);
   MPI_Comm_rank(MPI_COMM_WORLD, &p);
-  if (N < P) {
-     fprintf(stdout, "Too few discretization points...\n");
-     exit(1);
+
+  if (N < P)
+  {
+    printf("Too few discretization points...\n");
+    // exit(1);
   }
   /* Compute local indices for data distribution */
-  M = N + (P-1)*A;
-  L = M/P;
-  R = L % P;
-  I = p < R ? L+1 : L;
+  M = N + (P - 1) * A;
+  L = M / P;
+  R = M % P;
+  I = p < R ? L + 1 : L;
 
-/* arrays */
-  unew = (double *) malloc(I*sizeof(double));
-/* Note: The following allocation includes additionally:
-   - boundary conditins are set to zero
-   - the initial guess is set to zero */
-  u = (double *) calloc(I+2, sizeof(double));
+  double h = 1.0 / ((double)N + 1.0);
 
+  INT n = (INT)N;
+  printf("rank: %d, P: %d, M: %d, L: %d, R: %d, I: %d\n", p, P, M, L, R, I);
+  MPI_Barrier(MPI_COMM_WORLD);
+  printf("rank %d: %d, %d ... %d\n", p, I, globalIndex(L, R, p, 0), globalIndex(L, R, p, I - 1));
+  MPI_Barrier(MPI_COMM_WORLD);
 
-/* Jacobi iteration */
-  for (step = 0; step < SMX; step++) {
+  /* arrays */
+  double *unew = (double *)calloc(I, sizeof(double));
+  double *ff = (double *)calloc(I, sizeof(double));
+  double *rr = (double *)calloc(I, sizeof(double));
+  double *u = (double *)calloc(I + 2, sizeof(double));
 
-  /* RB communication of overlap */
-  if (p % 2 == 0) { // red phase
-    if (p + 1 < P){
-        send(unew[I-1], p+1);
-        u[I+2-1] = recieve(p+1);
-    }
-    if (p - 1 >= 0) {
-      send(unew[0], p-1);
-      u[0] = recieve(p-1);
-    }
+  for (int i = 0; i < I; i++)
+  {
+    INT n = 1 + globalIndex(L, R, p, i);
+    double xn = n * h;
+    ff[i] = f(xn);
+    rr[i] = r(xn);
   }
-  else { // black phase
-    if (p + 1 < P){
-        u[I+2-1] = recieve(p+1);
-        send(unew[I-1], p+1);
-    }
-    if (p - 1 >= 0) {
-      u[0] = recieve(p-1);
-      send(unew[0], p-1);
-    }
-  }
-  // No recieve for p = 0, use boundary condition instead u(0) = 0
-    if (p == 0) {
 
-    } else {
-
-      u[0] = recieve(p);
-    }
+  double last = 0.0;
+  /* Jacobi iteration */
+  for (INT step = 0; step < SMX; step++)
+  {
     /* local iteration step */
-    for(int i=0; i<I; i++) {
-    	    unew[i] = (u[i]+u[i+2]-h*h*ff[i])/(2.0-h*h*rr[i]);
+    for (int i = 0; i < I; i++)
+    {
+      unew[i] = (u[i] + u[i + 2] - h * h * ff[i]) / (2.0 - h * h * rr[i]);
+    }
+    for (int i = 0; i < I; i++)
+    {
+      u[i + 1] = unew[i];
     }
 
-    // No send for p = P-1, just set u(1) = 0 from boundary condition
-    if (p == P-1) {
+    if (step % 10000 == 0)
+    {
+      if (p == 0)
+      {
+        INT n = 1 + globalIndex(L, R, p, I - 1);
+        double x = h * n;
+        double next = unew[I - 1];
+        double real = x * (x - 1.0);
+        printf("%d: x %.6lf, val %.7lf, real val %.7lf, diff %.16lf, tol %.16lf\n", step, x, next, real, next - real, last - next);
+        last = next;
+      }
+    }
 
-    } else {
-      send(u[I-1], p);
+    /* RB communication of overlap */
+    if (p % 2 == 0)
+    { // red phase
+      if (p + 1 < P)
+      {
+        custom_send(unew[I - 1], p, p + 1);
+        u[I + 2 - 1] = custom_recieve(p, p + 1);
+      }
+      if (p - 1 >= 0)
+      {
+        custom_send(unew[0], p, p - 1);
+        u[0] = custom_recieve(p, p - 1);
+      }
+    }
+    else
+    { // black phase
+      if (p - 1 >= 0)
+      {
+        u[0] = custom_recieve(p, p - 1);
+        custom_send(unew[0], p, p - 1);
+      }
+      if (p + 1 < P)
+      {
+        u[I + 2 - 1] = custom_recieve(p, p + 1);
+        custom_send(unew[I - 1], p, p + 1);
+      }
     }
   }
-}
 
-/* output for graphical representation */
-/* Instead of using gather (which may lead to excessive memory requirements
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  if (p - 1 >= 0)
+  {
+    custom_recieve(p, p - 1);
+  }
+
+  /*for (int i = 0; i < I; i++)
+  {
+    INT n = 1 + globalIndex(L, R, p, i);
+    double xn = n * h;
+    printf("%d, %d: %.8f %.16f\n", p, i, xn, unew[i]);
+  }*/
+
+  char name[100];
+  sprintf(name, "/etc/data/%s.bin", "data");
+
+  FILE *file = p == 0 ? fopen(name, "w") : fopen(name, "a");
+  if (file == NULL)
+  {
+    printf("Error opening %s!\n", name);
+    exit(1);
+  }
+
+  if (p == 0)
+  {
+    INT iters = SMX;
+    fwrite(&n, sizeof(INT), 1, file);
+    fwrite(&iters, sizeof(INT), 1, file);
+  }
+  fwrite(unew, sizeof(double), I, file);
+  fclose(file);
+
+  if (p + 1 < P)
+  {
+    custom_send(0.0, p, p + 1);
+  }
+  /* output for graphical representation */
+  /* Instead of using gather (which may lead to excessive memory requirements
    on the master process) each process will write its own data portion. This
    introduces a sequentialization: the hard disk can only write (efficiently)
    sequentially. Therefore, we use the following strategy:
@@ -154,7 +223,6 @@ int main(int argc, char *argv[])
    5. process p sends the signal to process p+1 (if it exists).
 */
 
-/* That's it */
+  printf("DONE %d\n", p);
   MPI_Finalize();
-  exit(0);
 }

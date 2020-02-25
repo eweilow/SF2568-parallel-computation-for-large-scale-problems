@@ -14,7 +14,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* define problem to be solved */
-#define N 200      /* number of inner grid points */
+#define N 1000     /* number of inner grid points */
 #define SMX 250000 /* number of iterations */
 #define A 0
 
@@ -123,6 +123,16 @@ void main(int argc, char **argv)
     rr[i] = r(xn);
   }
 
+  INT printInterval = 10000;
+  INT totalValues = SMX / printInterval;
+  INT iter = 0;
+  double xV = 0.0;
+  double *values = NULL;
+  if (p == 0)
+  {
+    values = (double *)calloc(totalValues, sizeof(double));
+  }
+
   double last = 0.0;
   /* Jacobi iteration */
   for (INT step = 0; step < SMX; step++)
@@ -137,13 +147,15 @@ void main(int argc, char **argv)
       u[i + 1] = unew[i];
     }
 
-    if (step % 10000 == 0)
+    if (step % printInterval == 0)
     {
       if (p == 0)
       {
         INT n = 1 + globalIndex(L, R, p, I - 1);
         double x = h * n;
+        xV = x;
         double next = unew[I - 1];
+        values[iter++] = next;
         double real = u_analytic(x);
         printf("%d: x %.6lf, val %.7lf, real val %.7lf, diff %.16lf, tol %.16lf\n", step, x, next, real, next - real, last - next);
         last = next;
@@ -205,6 +217,13 @@ void main(int argc, char **argv)
 
   if (p == 0)
   {
+    fwrite(&printInterval, sizeof(INT), 1, file);
+    fwrite(&totalValues, sizeof(INT), 1, file);
+    fwrite(&xV, sizeof(double), 1, file);
+    fwrite(values, sizeof(double), totalValues, file);
+    printf("sizeof(INT): %d\n", sizeof(INT));
+    printf("sizeof(double): %d\n", sizeof(double));
+
     INT iters = SMX;
     fwrite(&n, sizeof(INT), 1, file);
     fwrite(&iters, sizeof(INT), 1, file);

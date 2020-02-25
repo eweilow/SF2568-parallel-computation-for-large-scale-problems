@@ -1,10 +1,18 @@
 clear
 
+clc
+
 inputData = "./data/data.bin";
 fid = fopen(inputData,'r');
-N = fread(fid, 1, "int64"); % this one works
-iters = fread(fid, 1, "int64"); % this one works
-data = fread(fid, N, "float64")'; % this one works
+iterInterval = fread(fid, 1, "int64")
+countIters = fread(fid, 1, "int64")
+xv = fread(fid, 1, "float64")
+convData = fread(fid, countIters, "float64")';
+
+
+N = fread(fid, 1, "int64");
+iters = fread(fid, 1, "int64");
+data = fread(fid, N, "float64")';
 fclose(fid);
 
 
@@ -23,8 +31,14 @@ x = linspace(0, 1, N+2);
 x = x(2:end-1);
 
 
-u = -10.*x.*(x-1).*(x-0.5);
+analytic = @(x) -10.*x.*(x-1).*(x-0.5);
+u = analytic(x);
 
+figure(3)
+clf
+errx = 0:iterInterval:iters-iterInterval;
+err = abs(convData - analytic(xv));
+semilogy(errx, err, '*-');
 
 figure(1);
 clf

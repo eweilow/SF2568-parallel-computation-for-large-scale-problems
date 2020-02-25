@@ -14,8 +14,8 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* define problem to be solved */
-#define N 1000     /* number of inner grid points */
-#define SMX 250000 /* number of iterations */
+#define N 1500       /* number of inner grid points */
+#define SMX 25000000 /* number of iterations */
 #define A 0
 
 #define PI M_PI
@@ -197,13 +197,6 @@ void main(int argc, char **argv)
   {
     custom_recieve(p, p - 1);
   }
-
-  /*for (int i = 0; i < I; i++)
-  {
-    INT n = 1 + globalIndex(L, R, p, i);
-    double xn = n * h;
-    printf("%d, %d: %.8f %.16f\n", p, i, xn, unew[i]);
-  }*/
 
   char name[100];
   sprintf(name, "./%s.bin", "data");

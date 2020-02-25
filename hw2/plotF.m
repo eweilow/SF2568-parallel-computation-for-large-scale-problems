@@ -38,12 +38,14 @@ figure(3)
 clf
 errx = 0:iterInterval:iters-iterInterval;
 err = abs(convData - analytic(xv));
-semilogy(errx, err, '*-');
+semilogy(errx, err, '-');
 
 figure(1);
 clf
 title(sprintf('iters = %d', iters));
-plot(x, u, 'DisplayName', 'Real')
+S = floor(linspace(1,length(x),18));
+S = S(2:end-1);
+plot(x(S), u(S), 'o', 'DisplayName', 'Real')
 hold on
 % plot(xt, ut(:,1), 'DisplayName', 'ODE45')
 plot(x, data, 'DisplayName', 'Our code')

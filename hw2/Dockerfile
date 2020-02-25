@@ -6,9 +6,10 @@ RUN apt-get --yes install openmpi-bin \
   openssh-client \
   openssh-server
 
+WORKDIR /etc/
 COPY . .
 ENV OMPI_MCA_btl_vader_single_copy_mechanism=none
 RUN mpicc -O3 -o main poisson1D.c -lm
 
-RUN mkdir /etc/data
-CMD mpirun --allow-run-as-root -np 4 main
+WORKDIR /etc/data
+CMD mpirun --allow-run-as-root -np 4 /etc/main

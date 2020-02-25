@@ -14,8 +14,8 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 /* define problem to be solved */
-#define N 1000      /* number of inner grid points */
-#define SMX 1000000 /* number of iterations */
+#define N 200      /* number of inner grid points */
+#define SMX 250000 /* number of iterations */
 #define A 0
 
 #define PI M_PI
@@ -23,12 +23,17 @@
 /* implement coefficient functions */
 double r(const double x)
 {
-  return -x - 1.0;
+  return -x;
 }
 
 double f(const double x)
 {
-  return 2.0 - x * r(x) * (x - 1.0);
+  return 30.0 - 10.0 * x * r(x) * (x - 1.0) * (x - 0.5) - 60.0 * x;
+}
+
+double u_analytic(const double x)
+{
+  return -10.0 * x * (x - 1.0) * (x - 0.5);
 }
 
 INT globalIndex(INT L, INT R, INT p, INT localIndex)
@@ -96,7 +101,7 @@ void main(int argc, char **argv)
   R = M % P;
   I = p < R ? L + 1 : L;
 
-  double h = 1.0 / ((double)N + 1.0);
+  double h = 1.0 / (double)(N + 1);
 
   INT n = (INT)N;
   printf("rank: %d, P: %d, M: %d, L: %d, R: %d, I: %d\n", p, P, M, L, R, I);
@@ -112,8 +117,8 @@ void main(int argc, char **argv)
 
   for (int i = 0; i < I; i++)
   {
-    INT n = 1 + globalIndex(L, R, p, i);
-    double xn = n * h;
+    INT cv = 1 + globalIndex(L, R, p, i);
+    double xn = cv * h;
     ff[i] = f(xn);
     rr[i] = r(xn);
   }
@@ -139,7 +144,7 @@ void main(int argc, char **argv)
         INT n = 1 + globalIndex(L, R, p, I - 1);
         double x = h * n;
         double next = unew[I - 1];
-        double real = x * (x - 1.0);
+        double real = u_analytic(x);
         printf("%d: x %.6lf, val %.7lf, real val %.7lf, diff %.16lf, tol %.16lf\n", step, x, next, real, next - real, last - next);
         last = next;
       }
@@ -189,7 +194,7 @@ void main(int argc, char **argv)
   }*/
 
   char name[100];
-  sprintf(name, "/etc/data/%s.bin", "data");
+  sprintf(name, "./%s.bin", "data");
 
   FILE *file = p == 0 ? fopen(name, "w") : fopen(name, "a");
   if (file == NULL)

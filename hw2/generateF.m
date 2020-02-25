@@ -1,9 +1,15 @@
+clear
+clc
 syms x r(x);
 
-u = x*(x-1);
+u = -10*x*(x-1).*(x-0.5);
 
-ubis = diff(u, x, 2);
+u
 
-% r = -1 * x - 1
 
-f = ubis - r*u
+uprim = diff(u, x, 1)
+ubis = diff(u, x, 2)
+
+f = ubis + r*u
+
+R = -sin(pi*x)

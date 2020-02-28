@@ -27,6 +27,8 @@ fclose(fid);
 
 %%
 clc
+close all
+
 x = linspace(0, 1, N+2);
 x = x(2:end-1);
 
@@ -34,26 +36,36 @@ x = x(2:end-1);
 analytic = @(x) -10.*x.*(x-1).*(x-0.5);
 u = analytic(x);
 
-figure(3)
-clf
+ax = gca;
 errx = 0:iterInterval:iters-iterInterval;
 err = abs(convData - analytic(xv));
-semilogy(errx, err, '-');
+semilogy(errx/1e6, err, '-', 'LineWidth', 2);
+xtickformat('%.0f')
+ax.XRuler.DefaultAxesXRuler = 0;
+xlabel("iteration (millions)");
+ylabel(sprintf("residual in x = %.8f", xv));
 
-figure(1);
+storeFigure("./plots/residualPerIter");
+
 clf
 title(sprintf('iters = %d', iters));
 S = floor(linspace(1,length(x),18));
 S = S(2:end-1);
-plot(x(S), u(S), 'o', 'DisplayName', 'Real')
+plot(x(S), u(S), 'o', 'DisplayName', 'Real', 'LineWidth', 2)
 hold on
 % plot(xt, ut(:,1), 'DisplayName', 'ODE45')
-plot(x, data, 'DisplayName', 'Our code')
-
+plot(x, data, 'DisplayName', 'Our code', 'LineWidth', 2)
+xlabel("x");
+ylabel("u(x)");
 legend('show', 'Location', 'best');
+grid on
+storeFigure("./plots/solution");
 
 
-figure(2);
 clf
 title(sprintf('iters = %d', iters));
-semilogy(x, abs(u - data), 'DisplayName', 'Real')
+semilogy(x, abs(u - data), 'DisplayName', 'Real', 'LineWidth', 2)
+xlabel("x");
+grid on
+ylabel("residual");
+storeFigure("./plots/residual");

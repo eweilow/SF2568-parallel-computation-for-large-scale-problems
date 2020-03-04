@@ -74,18 +74,21 @@ int main(int argc, char **argv)
   for (int i = 0; i < I; i++)
     x[i] = (double) i; //((double) random(0,1))/(RAND_MAX+1);
 
+  // TODO: Initial Local sort ????????????????????????????????????????????
+  // HERE
   int evenprocess = (myrank % 2);
 	int evenphase = 1;
 	for (int step = 0; step<N; step++) {
     double rec;
-    int i = 0;
+    double smallest = x[0];
+    double largest = x[I-1];
 		 if (~evenprocess) {
 
 		   if (~evenphase) {
-         custom_send(x[i], myrank, myrank+1);
+         custom_send(largest, myrank, myrank+1);
 		     rec = custom_receive(myrank, myrank+1);
 		   } else {
-		     custom_send(x[i], myrank, myrank-1);
+		     custom_send(smallest, myrank, myrank-1);
 		     rec = custom_receive(myrank, myrank-1);
 		   }
 		   if (x[i] < rec)
@@ -95,10 +98,10 @@ int main(int argc, char **argv)
 
 		   if (evenphase) {
          rec = custom_receive(myrank, myrank-1);
-		     custom_send(x[i], myrank, myrank-1);
+		     custom_send(smallest, myrank, myrank-1);
 		   } else {
 		     rec = custom_receive(myrank, myrank+1);
-		     custom_send(x[i], myrank, myrank+1);
+		     custom_send(largest, myrank, myrank+1);
 		   }
 		   if (x[i] > rec)
 		      rec = x[i];

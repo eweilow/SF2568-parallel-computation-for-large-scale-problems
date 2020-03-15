@@ -11,6 +11,7 @@
 
 #define DEBUG_COMM 0
 #define DEBUG_STEPS 0
+#define DEBUG_PARAMS 0
 
 double custom_receive(INT current, INT p)
 {
@@ -137,7 +138,7 @@ void main(int argc, char **argv)
   MPI_Comm_size(MPI_COMM_WORLD, &P);
   MPI_Comm_rank(MPI_COMM_WORLD, &p);
 
-  if(p == 0) {
+  if(DEBUG_PARAMS && p == 0) {
     for(int i = 0; i < argc; i++) {
       printf("argv[%d] = '%s'\n", i, argv[i]);
     }
@@ -157,21 +158,29 @@ void main(int argc, char **argv)
       I += 2;
     }
 
-    printf("N: %d\n", N);
-    printf("I: %d\n", I);
-    printf("r: %d\n", r);
+    if(DEBUG_PARAMS) {
+      printf("N: %d\n", N);
+      printf("I: %d\n", I);
+      printf("r: %d\n", r);
+    }
   }
 
   if(p == P-1) {
     I += r - nIncr * 2;
   }
 
-  for(int i = 0; i < P; i++) {
-    MPI_Barrier(MPI_COMM_WORLD);
-    if(p == i) {
-      printf("p %d: %d\n", p, I);
+  if(DEBUG_PARAMS) {
+    for(int i = 0; i < P; i++) {
+      MPI_Barrier(MPI_COMM_WORLD);
+      if(p == i) {
+        printf("p %d: %d\n", p, I);
+      }
     }
   }
+
+  clock_t rndStart, rndEnd, start, end; 
+  MPI_Barrier(MPI_COMM_WORLD);
+  rndStart = clock(); 
     
   // random number generator initialization
   srand(p+1);
@@ -183,6 +192,10 @@ void main(int argc, char **argv)
   x[I] = -1.0;
 
   print_debug_output(p, x, P, I, -1);
+  rndEnd = clock(); 
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  start = clock(); 
 
   for(int s = 0; s < N; s++) {
     int evenPhase = s % 2 == 0;
@@ -254,47 +267,17 @@ void main(int argc, char **argv)
       print_debug_output(p, x, P, I, s);
     }
   }
+  
+  MPI_Barrier(MPI_COMM_WORLD);
+  end = clock(); 
+  if(p == 0) {
+    double rnd_time_taken = (double)(rndEnd - rndStart) / (double)(CLOCKS_PER_SEC);
+    double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
+    printf("P = %d, tstart = %.8lf, t = %.8lf\n", P, rnd_time_taken, time_taken);
+  }
 
   
   print_debug_output(p, x, P, I, N+1);
 
   MPI_Finalize();
-
-  /*
-
-  // TODO: Initial Local sort ????????????????????????????????????????????
-  // HERE
-  int evenprocess = (myp % 2);
-	int evenphase = 1;
-	for (int step = 0; step<N; step++) {
-    double rec;
-    double smallest = x[0];
-    double largest = x[I-1];
-		 if (~evenprocess) {
-
-		   if (~evenphase) {
-         custom_send(largest, myp, myp+1);
-		     rec = custom_receive(myp, myp+1);
-		   } else {
-		     custom_send(smallest, myp, myp-1);
-		     rec = custom_receive(myp, myp-1);
-		   }
-		   if (x[i] < rec)
-        rec = x[i];
-       } else {
-
-		   if (evenphase) {
-         rec = custom_receive(myp, myp-1);
-		     custom_send(smallest, myp, myp-1);
-		   } else {
-		     rec = custom_receive(myp, myp+1);
-		     custom_send(largest, myp, myp+1);
-		   }
-		   if (x[i] > rec)
-		      rec = x[i];
-     }
-     evenphase = ~evenphase;
- }*/
-
-  // printf("sorted: %s\n", x);
 }

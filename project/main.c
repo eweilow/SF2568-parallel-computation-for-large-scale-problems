@@ -1,7 +1,9 @@
-#include<stdbool.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "./types.c"
 #include "./simulation.c"
+#include "./geometry.c"
 #include "./data.c"
 
 void main(int argc, char **argv)
@@ -9,8 +11,7 @@ void main(int argc, char **argv)
   spawnMPI();
 
   // initialize geometry data on root process
-  // compute adjacency from geometry
-
+  TileGeometry geometry = generateIsland(4, 4, 0.2, 0.0);
 
   // initialize initial element of historicalData
 

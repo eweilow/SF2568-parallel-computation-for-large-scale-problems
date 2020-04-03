@@ -1,9 +1,11 @@
 // generate the island
-Tile* generateIsland(
+TileGeometry generateIsland(
   long tilesWide, 
   long tilesHigh, 
   double oceanFactor,
   double randomWaterFactor
 ) {
-  return NIL;
+  TileGeometry geometry;
+
+  return geometry;
 }

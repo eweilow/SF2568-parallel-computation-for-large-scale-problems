@@ -1,17 +1,29 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "./types.c"
 #include "./simulation.c"
 #include "./geometry.c"
 #include "./data.c"
+#include "./init.c"
+#include "./debug.c"
+
+#define TIMESTEPS 1000
 
 void main(int argc, char **argv)
 {
   spawnMPI();
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(4, 4, 0.2, 0.0);
+  TileGeometry geometry = generateIsland(5, 5, 2, 0.0);
+
+  for(long n = 0; n < geometry.tileCount; n++) {
+    initializeTile(geometry.tiles + n, TIMESTEPS);
+  }
+
+  debugTiles(&geometry, 0); // debug at timestep 0
 
   // initialize initial element of historicalData
 

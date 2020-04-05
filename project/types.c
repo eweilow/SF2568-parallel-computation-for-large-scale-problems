@@ -14,7 +14,7 @@ typedef struct {
   long* indirectlyAdjacentTileIndices;
 } TileAdjacency;
 
-typedef struct {
+typedef struct Tile{
   double x;
   double y;
 
@@ -22,7 +22,7 @@ typedef struct {
 
   long historicalDataCount;
   TileData* historicalData;
-  
+
   TileAdjacency adjacency;
 } Tile;
 

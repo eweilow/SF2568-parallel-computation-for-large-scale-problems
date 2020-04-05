@@ -23,7 +23,7 @@ void main(int argc, char **argv)
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
 
-  debugTiles(&geometry, 0); // debug at timestep 0
+  debugUpdateTiles(&geometry, 0); // debug at timestep 0
 
   // initialize initial element of historicalData
 
@@ -35,7 +35,7 @@ void main(int argc, char **argv)
   // PARALLEL ONLY: create map for data exchanging
 
   // initialize future historicalData in each tile on every child
-  
+
   // for each step {
     // run simulation on tiles local to this tile
 

@@ -48,17 +48,15 @@ void debugUpdateTiles(
   for (int i=0; i<size2; i++){
     indAdjTiles[i] = geometry->tiles[indAdjTilesIndPtr[i]];
   }
-  Tile *imAdjTilesPtr;
-  Tile *indAdjTilesPtr;
 
-  printf("\n Instantiation done!");
+  printf("Instantiation done!\n");
 
   updateTile(
-    &geometry->tiles[0],
-    geometry->tiles[0].adjacency.immediatelyAdjacentTileIndicesCount,
-    imAdjTilesPtr,
-    geometry->tiles[0].adjacency.indirectlyAdjacentTileIndicesCount,
-    indAdjTilesPtr,
+    &(geometry->tiles[0]),
+    size1,
+    imAdjTiles,
+    size2,
+    indAdjTiles,
     timestep
   );
   printf("\ndebug output at timestep %d\n", timestep+1);

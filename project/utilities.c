@@ -7,7 +7,5 @@
 
 
 long getRandomInt(long upperBound) {
-  srand(time(NULL));   // Initialization, should only be called once.
-  long r = rand();
-  return r;
+  return rand() * upperBound / RAND_MAX;
 }

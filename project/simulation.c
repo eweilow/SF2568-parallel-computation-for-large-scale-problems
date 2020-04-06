@@ -14,6 +14,7 @@ void migrateRabbits(
   Tile* adjacentToImmediatelyAdjacentTiles,
   long currentTimeStep
 ) {
+  printf("migrateRabbits\n");
   // remove from this tile and add to random immediately adjacent tiles
   long draw;
   long nRabbits = tile->historicalData[currentTimeStep].rabbitCount;
@@ -21,7 +22,8 @@ void migrateRabbits(
     // draw random number
     // find corresponding tile
     // add to tile historicalData of this step
-    draw = getRandomInt(immediatelyAdjacentTileCount - 1);
+    draw = getRandomInt(immediatelyAdjacentTileCount);
+    printf("%d of %d\n", draw, immediatelyAdjacentTileCount - 1);
     Tile* drawnTile = &immediatelyAdjacentTiles[draw];
     migrateRabbit(tile, drawnTile, currentTimeStep);
   }
@@ -40,6 +42,7 @@ void migrateFoxes(
   Tile* adjacentToImmediatelyAdjacentTiles,
   long currentTimeStep
 ) {
+  printf("migrateFoxes\n");
   // remove from this tile and add to random tiles 1 or 2 steps away
   long draw;
   long nFoxes = tile->historicalData[currentTimeStep].foxCount;
@@ -47,7 +50,7 @@ void migrateFoxes(
     // draw random number
     // find corresponding tile
     // add to tile historicalData of this step
-    draw = getRandomInt(immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount - 1);
+    draw = getRandomInt(immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
     if (draw < immediatelyAdjacentTileCount) {
       Tile* drawnTile = &immediatelyAdjacentTiles[draw];
       migrateFox(tile, drawnTile, currentTimeStep);

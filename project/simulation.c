@@ -50,6 +50,8 @@ void migrateFoxes(
     // draw random number
     // find corresponding tile
     // add to tile historicalData of this step
+
+    // TODO: make possible for fox to stay in tile !!!!!!!!!!!!!!!
     draw = getRandomInt(immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
     if (draw < immediatelyAdjacentTileCount) {
       Tile* drawnTile = &immediatelyAdjacentTiles[draw];
@@ -61,6 +63,15 @@ void migrateFoxes(
     }
 
   }
+}
+
+void vegetationGrowth(Tile* tile, int currentTimeStep) {
+  double vegetationStart = tile->historicalData[currentTimeStep - 1].vegetation;
+  int rabbitCountStart = tile->historicalData[currentTimeStep - 1].rabbitCount;
+  double vegetationEnd = 1.1*(vegetationStart - 0.001*rabbitCountStart);
+  vegetationEnd = vegetationEnd > 1.0 ? 1.0 : vegetationEnd;
+  vegetationEnd = vegetationEnd < 0.1 ? 0.1 : vegetationEnd;
+  tile->historicalData[currentTimeStep].vegetation = vegetationEnd;
 }
 
 void updateTile(

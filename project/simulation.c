@@ -2,8 +2,8 @@
 
 
 void migrateRabbit(Tile* from, Tile* to, long timestep){
-  from->historicalData[timestep + 1].rabbitCount -= 1;
-  to->historicalData[timestep + 1].rabbitCount += 1;
+  from->historicalData[timestep].rabbitCount -= 1;
+  to->historicalData[timestep].rabbitCount += 1;
 }
 
 void migrateRabbits(
@@ -33,8 +33,8 @@ void migrateRabbits(
 }
 
 void migrateFox(Tile* from, Tile* to, long timestep){
-  from->historicalData[timestep + 1].foxCount -= 1;
-  to->historicalData[timestep + 1].foxCount += 1;
+  from->historicalData[timestep].foxCount -= 1;
+  to->historicalData[timestep].foxCount += 1;
 }
 
 void migrateFoxes(
@@ -76,6 +76,20 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
   tile->historicalData[currentTimeStep].vegetation = vegetationEnd;
 }
 
+void startDataOfNewDay(Tile* tile, int currentTimeStep) {
+  long rabbitCount = tile->historicalData[currentTimeStep - 1].rabbitCount;
+  long foxCount = tile->historicalData[currentTimeStep - 1].foxCount;
+  double vegetationCount = tile->historicalData[currentTimeStep - 1].vegetation;
+
+  TileData newDayTileData;
+
+  newDayTileData.rabbitCount = rabbitCount;
+  newDayTileData.foxCount = foxCount;
+  newDayTileData.vegetation = vegetationCount;
+
+  tile->historicalData[currentTimeStep] = newDayTileData;
+}
+
 void updateTile(
   Tile* tile, // The current tile
   long immediatelyAdjacentTileCount,
@@ -85,7 +99,8 @@ void updateTile(
   long currentTimeStep
 ) {
   // Other stuff
-
+  startDataOfNewDay(tile, currentTimeStep);
+  vegetationGrowth(tile, currentTimeStep);
   // Migrate stuff
   migrateRabbits(
     tile,
@@ -105,9 +120,3 @@ void updateTile(
     currentTimeStep
   );
 }
-
-//void saveState(Tile* tile, long timestep){
-//  tile.rabbitCount = tile.historicalData[timestep].rabbitCount;
-//  tile.foxCount = tile.historicalData[timestep].foxCount;
-//  tile.vegetation = tile.historicalData[timestep].vegetation;
-//}

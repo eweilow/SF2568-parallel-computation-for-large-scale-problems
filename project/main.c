@@ -23,7 +23,7 @@ void main(int argc, char **argv)
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
 
-  debugUpdateTiles(&geometry, 0); // debug at timestep 0
+  debugUpdateTiles(&geometry, 1); // debug at timestep 0
   printf("\n ***** Run sucessful ***** \n");
   // initialize initial element of historicalData
 

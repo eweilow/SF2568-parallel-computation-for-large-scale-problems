@@ -76,15 +76,15 @@ void debugUpdateTile(
     long timestep
   ) {
 
-    printf("\ndebug output at timestep %d\n", timestep);
+    printf("\ndebug output at timestep %d\n", timestep - 1);
     printf("(%5s, %5s): %8s %8s %8s\n", "x", "y", "rabbits", "foxes", "veg.");
     for(long n = 0; n < geometry->tileCount; n++) {
       printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
         geometry->tiles[n].x,
         geometry->tiles[n].y,
-        geometry->tiles[n].historicalData[timestep].rabbitCount,
-        geometry->tiles[n].historicalData[timestep].foxCount,
-        geometry->tiles[n].historicalData[timestep].vegetation
+        geometry->tiles[n].historicalData[timestep-1].rabbitCount,
+        geometry->tiles[n].historicalData[timestep-1].foxCount,
+        geometry->tiles[n].historicalData[timestep-1].vegetation
       );
     }
     printf("\n ########### updateTiles Start ######## timestep: %d\n", timestep);
@@ -113,17 +113,7 @@ void debugUpdateTile(
         timestep
       );
     }
-    printf("\ndebug output at timestep %d\n", timestep+1);
-    for(long n = 0; n < geometry->tileCount; n++) {
-      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-        geometry->tiles[n].x,
-        geometry->tiles[n].y,
-        geometry->tiles[n].historicalData[timestep+1].rabbitCount,
-        geometry->tiles[n].historicalData[timestep+1].foxCount,
-        geometry->tiles[n].historicalData[timestep+1].vegetation
-      );
-    }
-    printf("\ndebug output of previous timestep at timestep %d\n", timestep + 1);
+    printf("\ndebug output at timestep %d\n", timestep);
     for(long n = 0; n < geometry->tileCount; n++) {
       printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
         geometry->tiles[n].x,
@@ -131,6 +121,16 @@ void debugUpdateTile(
         geometry->tiles[n].historicalData[timestep].rabbitCount,
         geometry->tiles[n].historicalData[timestep].foxCount,
         geometry->tiles[n].historicalData[timestep].vegetation
+      );
+    }
+    printf("\ndebug output of previous timestep at timestep %d\n", timestep);
+    for(long n = 0; n < geometry->tileCount; n++) {
+      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
+        geometry->tiles[n].x,
+        geometry->tiles[n].y,
+        geometry->tiles[n].historicalData[timestep-1].rabbitCount,
+        geometry->tiles[n].historicalData[timestep-1].foxCount,
+        geometry->tiles[n].historicalData[timestep-1].vegetation
       );
     }
 }

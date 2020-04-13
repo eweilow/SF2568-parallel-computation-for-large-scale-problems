@@ -24,7 +24,7 @@ void main(int argc, char **argv)
   }
 
   debugUpdateTiles(&geometry, 0); // debug at timestep 0
-
+  printf("\n ***** Run sucessful ***** \n");
   // initialize initial element of historicalData
 
   // PARALLEL ONLY: scatter tiles and adjacency from root to children

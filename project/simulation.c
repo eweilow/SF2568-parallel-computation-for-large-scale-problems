@@ -2,7 +2,7 @@
 
 
 void migrateRabbit(Tile* from, Tile* to, long timestep){
-  from->historicalData[timestep].rabbitCount -= 1;
+  from->historicalData[timestep + 1].rabbitCount -= 1;
   to->historicalData[timestep + 1].rabbitCount += 1;
 }
 
@@ -23,14 +23,14 @@ void migrateRabbits(
     // find corresponding tile
     // add to tile historicalData of this step
     draw = getRandomInt(immediatelyAdjacentTileCount);
-    printf("%d of %d\n", draw, immediatelyAdjacentTileCount - 1);
+    //printf("%d of %d\n", draw, immediatelyAdjacentTileCount - 1);
     Tile* drawnTile = &immediatelyAdjacentTiles[draw];
     migrateRabbit(tile, drawnTile, currentTimeStep);
   }
 }
 
 void migrateFox(Tile* from, Tile* to, long timestep){
-  from->historicalData[timestep].foxCount -= 1;
+  from->historicalData[timestep + 1].foxCount -= 1;
   to->historicalData[timestep + 1].foxCount += 1;
 }
 
@@ -49,11 +49,12 @@ void migrateFoxes(
   for(long i=0; i<nFoxes; i++) {
     // draw random number
     // find corresponding tile
-    // add to tile historicalData of this step
-
-    // TODO: make possible for fox to stay in tile !!!!!!!!!!!!!!!
-    draw = getRandomInt(immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
-    if (draw < immediatelyAdjacentTileCount) {
+    // add to tile.historicalData of this step
+    draw = getRandomInt(1 + immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
+    printf("after draw \n");
+    if (draw == immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount) {
+      // Do nothing (fox stays in tile)
+    } else if (draw < immediatelyAdjacentTileCount) {
       Tile* drawnTile = &immediatelyAdjacentTiles[draw];
       migrateFox(tile, drawnTile, currentTimeStep);
     } else {
@@ -61,7 +62,6 @@ void migrateFoxes(
       Tile* drawnTile = &adjacentToImmediatelyAdjacentTiles[draw];
       migrateFox(tile, drawnTile, currentTimeStep);
     }
-
   }
 }
 

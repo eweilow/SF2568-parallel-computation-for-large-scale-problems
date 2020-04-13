@@ -123,4 +123,14 @@ void debugUpdateTile(
         geometry->tiles[n].historicalData[timestep+1].vegetation
       );
     }
+    printf("\ndebug output of previous timestep at timestep %d\n", timestep + 1);
+    for(long n = 0; n < geometry->tileCount; n++) {
+      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
+        geometry->tiles[n].x,
+        geometry->tiles[n].y,
+        geometry->tiles[n].historicalData[timestep].rabbitCount,
+        geometry->tiles[n].historicalData[timestep].foxCount,
+        geometry->tiles[n].historicalData[timestep].vegetation
+      );
+    }
 }

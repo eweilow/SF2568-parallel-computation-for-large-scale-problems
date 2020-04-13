@@ -18,7 +18,10 @@ void migrateRabbits(
   // remove from this tile and add to random immediately adjacent tiles
   long draw;
   long nRabbits = tile->historicalData[currentTimeStep].rabbitCount;
-  for(long i=0; i<nRabbits; i++) {
+  long numberOfRabbitsToMigrate = nRabbits / 5;
+  long* rabbitsToMigrate = getRandomNumbers(numberOfRabbitsToMigrate, nRabbits);
+  // replace with drawing rabbit structs with indexes from rabbitsToMigrate from tile
+  for(long i=0; i<numberOfRabbitsToMigrate; i++) {
     // draw random number
     // find corresponding tile
     // add to tile historicalData of this step
@@ -51,7 +54,6 @@ void migrateFoxes(
     // find corresponding tile
     // add to tile.historicalData of this step
     draw = getRandomInt(1 + immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
-    printf("after draw \n");
     if (draw == immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount) {
       // Do nothing (fox stays in tile)
     } else if (draw < immediatelyAdjacentTileCount) {

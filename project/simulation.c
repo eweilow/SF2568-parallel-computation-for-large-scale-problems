@@ -86,17 +86,13 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
 }
 
 void startDataOfNewDay(Tile* tile, int currentTimeStep) {
-  long rabbitCount = tile->historicalData[currentTimeStep - 1].rabbitCount;
-  long foxCount = tile->historicalData[currentTimeStep - 1].foxCount;
+  List rabbitsList = tile->historicalData[currentTimeStep - 1].rabbitsList;
+  List foxesList = tile->historicalData[currentTimeStep - 1].foxesList;
   double vegetationCount = tile->historicalData[currentTimeStep - 1].vegetation;
 
-  TileData newDayTileData;
-
-  newDayTileData.rabbitCount = rabbitCount;
-  newDayTileData.foxCount = foxCount;
-  newDayTileData.vegetation = vegetationCount;
-
-  tile->historicalData[currentTimeStep] = newDayTileData;
+  tile->historicalData[currentTimeStep].rabbitsList = list_clone(&rabbitsList);
+  tile->historicalData[currentTimeStep].foxesList = list_clone(&foxesList);
+  tile->historicalData[currentTimeStep].vegetation = vegetationCount;
 }
 
 void updateTile(

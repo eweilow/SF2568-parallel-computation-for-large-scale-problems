@@ -186,3 +186,17 @@ List list_clone(
 
   return cloned;
 }
+
+long lengthOfList(
+  List* list
+) {
+  long count;
+  list_count(list, &count); // get count of foxes into count
+  return count;
+}
+
+long randomIndexOfList(
+  List* list
+) {
+  return getRandomInt(lengthOfList(list));
+}

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define TIMESTEPS 1000
+#define TIMESTEPS 5
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0
@@ -12,25 +12,26 @@
 #define DEBUG_SIMULATION 1
 #define DEBUG_SIMULATION_DATA 0
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+// https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
 
 #include "./utils/rand.c"
 #include "./utils/list.c"
 
 #include "./data/mpi.c"
 #include "./data/types.c"
-
-#include "./debug.c"
+#include "./data/helper.c"
 
 #include "./simulation/migration.c"
 #include "./simulation/birth.c"
 #include "./simulation/death.c"
+#include "./simulation/init.c"
+#include "./simulation/startDay.c"
+#include "./simulation/simulateDay.c"
 
-#include "./simulation.c"
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
-
-#include "./init.c"
-
 
 #if TEST_LIST
 
@@ -86,28 +87,19 @@ void main(int argc, char **argv)
   for(long n = 0; n < geometry.tileCount; n++) {
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
-  // migrateFox(geometry.tiles + 0, geometry.tiles + 1, 0, 0);
-
-  debugTiles(&geometry, 0);
-  for(long n = 0; n < geometry.tileCount; n++) {
-    startDataOfNewDay(geometry.tiles + n, 1);
-  }
-
-  migrateFox(geometry.tiles + 0, geometry.tiles + 1, 0, 1);
-  birthRabbit(geometry.tiles + 2, 1);
-  birthRabbit(geometry.tiles + 3, 1);
-  killRabbit(geometry.tiles + 3, 0, 1);
-  birthFox(geometry.tiles + 1, 1);
-  birthFox(geometry.tiles + 1, 1);
-  birthFox(geometry.tiles + 1, 1);
-  birthFox(geometry.tiles + 1, 1);
-  migrateFox(geometry.tiles + 1, geometry.tiles + 2, 1, 1);
-  debugTiles(&geometry, 1);
   
+  debugTiles(&geometry, 0);
 
+  for(long ts = 1; ts < TIMESTEPS; ts++) {
+    for(long n = 0; n < geometry.tileCount; n++) {
+      startDataOfNewDay(geometry.tiles + n, ts);
+    }
+    simulateDay(&geometry, ts);
+  }
+  debugTiles(&geometry, TIMESTEPS - 1);
 
-  // debugUpdateTiles(&geometry, 1); // debug at timestep 0
   printf("\n ***** Run sucessful ***** \n");
+
   // initialize initial element of historicalData
 
   // PARALLEL ONLY: scatter tiles and adjacency from root to children

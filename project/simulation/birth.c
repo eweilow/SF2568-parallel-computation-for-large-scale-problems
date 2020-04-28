@@ -2,13 +2,14 @@ long nextId = 0;
 
 // Birth a rabbit in the provided tile and timestep.
 void birthRabbit(Tile* inTile, long timestep) {
+  List *inList = getRabbits(inTile, timestep);
 
   Rabbit rabbit;
   rabbit.birthDay = timestep;
   rabbit.id = nextId++;
 
   // Add the rabbit to the tile list of rabbits
-  list_insert(&((inTile->historicalData + timestep)->rabbitsList), &rabbit);
+  list_insert(inList, &rabbit);
   
   #if DEBUG_SIMULATION
     if((timestep == 0 && DEBUG_INITIAL_BIRTH) || timestep > 0) {
@@ -24,6 +25,7 @@ void birthRabbit(Tile* inTile, long timestep) {
 
 // Birth a fox in the provided tile and timestep.
 void birthFox(Tile* inTile, long timestep) {
+  List *inList = getFoxes(inTile, timestep);
 
   Fox fox; 
 
@@ -31,7 +33,7 @@ void birthFox(Tile* inTile, long timestep) {
   fox.id = nextId++;
   fox.hunger = 0.0;
   // Add the fox to the tile list of foxes
-  list_insert(&((inTile->historicalData + timestep)->foxesList), &fox);
+  list_insert(inList, &fox);
 
   #if DEBUG_SIMULATION
     if((timestep == 0 && DEBUG_INITIAL_BIRTH) || timestep > 0) {

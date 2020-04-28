@@ -98,7 +98,8 @@ void list_insert(
 
 void list_remove(
   List* list,
-  long index
+  long index,
+  void* deleted
 ) {
   if(index < 0) {
     if(DEBUG_LIST) {
@@ -129,6 +130,9 @@ void list_remove(
       copyToIndex, copyToByteIndex
     );
   }
+  
+  memcpy(list->memptr + copyFromByteIndex, deleted, list->elementSize);
+
   memmove(list->memptr + copyToByteIndex, list->memptr + copyFromByteIndex, byteLength);
   list->elementCount = list->elementCount - 1;
 

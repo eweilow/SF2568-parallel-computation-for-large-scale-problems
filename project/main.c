@@ -33,9 +33,10 @@ void main(int argc, char **argv)
   long count;
   double* data;
 
+  double removed;
   for(long l = 0; l < 10; l++) {
     list_count(&list, &count);
-    list_remove(&list, getRandomInt(count));
+    list_remove(&list, getRandomInt(count), &removed);
   }
 
   list_read(&list, &count, (void**)&data);
@@ -43,7 +44,7 @@ void main(int argc, char **argv)
 
   for(long l = 0; l < 10; l++) {
     list_count(&list, &count);
-    list_remove(&list, getRandomInt(count));
+    list_remove(&list, getRandomInt(count), &removed);
   }
   
   list_read(&list, &count, (void**)&data);

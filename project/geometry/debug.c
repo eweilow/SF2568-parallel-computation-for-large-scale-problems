@@ -4,7 +4,7 @@ void debugGeometryAdjacency(
   Tile* tiles = geometry->tiles;
   for(long i = 0; i < geometry->tilesWide; i++) {
     for(long j = 0; j < geometry->tilesHigh; j++) {
-      long self = i*geometry->tilesWide + j;
+      long self = i*geometry->tilesHigh + j;
       printf("x = %.2f, y = %.2f\n water: %d\n", tiles[self].x, tiles[self].y, tiles[self].isWaterTile);
 
       for(long n = 0; n < tiles[self].adjacency.immediatelyAdjacentTileIndicesCount; n++) {
@@ -90,16 +90,18 @@ void debugTiles(
     debugTile(geometry->tiles + n, timestep);
   }
 
-  printf("== all rabbits at timestep %ld ==\n", timestep);
-  printf("  %5s %5s %5s\n", "tile", "id", "born");
-  for(long n = 0; n < geometry->tileCount; n++) {
-    debugTileRabbits(geometry->tiles + n, timestep);
-  }
+  #if DEBUG_INDIVIDUAL_ANIMALS
+    printf("== all rabbits at timestep %ld ==\n", timestep);
+    printf("  %5s %5s %5s\n", "tile", "id", "born");
+    for(long n = 0; n < geometry->tileCount; n++) {
+      debugTileRabbits(geometry->tiles + n, timestep);
+    }
 
-  printf("== all foxes at timestep %ld ==\n", timestep);
-  printf("  %5s %5s %5s | %s \n", "tile", "id", "born", "hunger");
-  for(long n = 0; n < geometry->tileCount; n++) {
-    debugTileFoxes(geometry->tiles + n, timestep);
-  }
-  printf("\n");
+    printf("== all foxes at timestep %ld ==\n", timestep);
+    printf("  %5s %5s %5s | %s \n", "tile", "id", "born", "hunger");
+    for(long n = 0; n < geometry->tileCount; n++) {
+      debugTileFoxes(geometry->tiles + n, timestep);
+    }
+    printf("\n");
+  #endif
 }

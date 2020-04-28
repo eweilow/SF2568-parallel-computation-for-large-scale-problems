@@ -2,16 +2,18 @@ typedef struct {
   long birthDay;
 } Rabbit;
 
+#define MEALS_LENGTH 4
+
 typedef struct {
   long birthDay;
-  long* mealTimeStamps;
+
+  long nextMealIndex; // The index where to write the next meal
+  long mealTimeStamps[MEALS_LENGTH];
 } Fox;
 
 typedef struct {
-  long rabbitCount;
-  Rabbit* rabbits;
-  long foxCount;
-  Fox* foxes;
+  List rabbitsList;
+  List foxesList;
   double vegetation;
 } TileData;
 
@@ -36,31 +38,6 @@ typedef struct Tile{
 
   TileAdjacency adjacency;
 } Tile;
-
-Fox getFoxFromTile(Tile* tile, int index, int timestep){
-  Fox* foxes = tile->historicalData[timestep].foxes;
-//  if (tile.historicalData[timestep].foxCount == 0)
-//    return -1;
-
-  return foxes[index];
-}
-
-Fox removeFoxFromTile(Tile* tile, int index, int timestep){
-  Fox* foxes = tile->historicalData[timestep].foxes;
-//  if (tile.historicalData[timestep].foxCount == 0)
-//    return -1;
-  Fox fox = foxes[index];
-  //free(foxes[index]); // = NULL;
-  tile->historicalData[timestep].foxCount -= 1;
-  return fox;
-}
-
-void addFoxToTile(Tile* tile, Fox fox, int timestep){
-  TileData* currentTileData = &tile->historicalData[timestep];
-  int freeIndex = currentTileData->foxCount; // replace with, getFreeIndex
-  currentTileData->foxes[freeIndex] = fox;
-  currentTileData->foxCount += 1;
-}
 
 typedef struct {
   long tileCount;

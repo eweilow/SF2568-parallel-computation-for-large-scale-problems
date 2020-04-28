@@ -1,5 +1,9 @@
 // Birth a rabbit in the provided tile and timestep.
 void birthRabbit(Tile* inTile, long timestep) {
+  #if SIMULATION_DEBUG
+    printf("[SIM.%ld] BIRTH rabbit IN tile.%ld\n", timestep, inTile->id);
+  #endif
+
   Rabbit rabbit;
   rabbit.birthDay = timestep;
   
@@ -9,6 +13,10 @@ void birthRabbit(Tile* inTile, long timestep) {
 
 // Birth a fox in the provided tile and timestep.
 void birthFox(Tile* inTile, long timestep) {
+  #if SIMULATION_DEBUG
+    printf("[SIM.%ld] BIRTH fox IN tile.%ld\n", timestep, inTile->id);
+  #endif
+
   Fox fox; 
 
   fox.birthDay = timestep;

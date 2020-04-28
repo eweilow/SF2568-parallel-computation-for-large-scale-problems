@@ -4,7 +4,7 @@ void debugGeometryAdjacency(
   Tile* tiles = geometry->tiles;
   for(long i = 0; i < geometry->tilesWide; i++) {
     for(long j = 0; j < geometry->tilesHigh; j++) {
-      long self = i*geometry->tilesWide + j;
+      long self = i*geometry->tilesHigh + j;
       printf("x = %.2f, y = %.2f\n water: %d\n", tiles[self].x, tiles[self].y, tiles[self].isWaterTile);
 
       for(long n = 0; n < tiles[self].adjacency.immediatelyAdjacentTileIndicesCount; n++) {

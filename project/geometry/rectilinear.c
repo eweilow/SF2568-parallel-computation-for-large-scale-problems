@@ -64,14 +64,14 @@ TileGeometry generateIsland(
   geometry.tilesWide = tilesWide;
   geometry.tilesHigh = tilesHigh;
 
-  long tileCount = tilesHigh * tilesHigh;
+  long tileCount = tilesWide * tilesHigh;
   Tile* tiles = (Tile*)calloc(tileCount, sizeof(Tile));
 
   for(long i = 0; i < tilesWide; i++) {
     for(long j = 0; j < tilesHigh; j++) {
       bool isLand = (i >= oceanBorderTiles && i < (tilesWide - oceanBorderTiles)) && (j >= oceanBorderTiles && j < (tilesHigh - oceanBorderTiles));
 
-      long tileIndex = i*tilesWide + j;
+      long tileIndex = i*tilesHigh + j;
       tiles[tileIndex].id = tileIndex;
       tiles[tileIndex].x = (double) i;
       tiles[tileIndex].y = (double) j;

@@ -79,7 +79,7 @@ void main(int argc, char **argv)
   spawnMPI();
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(2, 2, 0, 0.0);
+  TileGeometry geometry = generateIsland(5, 5, 0, 0.0);
 
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);

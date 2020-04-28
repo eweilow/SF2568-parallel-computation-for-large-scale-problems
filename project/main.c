@@ -11,6 +11,7 @@
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 1
 #define DEBUG_SIMULATION_DATA 0
+#define DEBUG_INDIVIDUAL_ANIMALS 0
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"

@@ -3,14 +3,54 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "./types.c"
-#include "./simulation.c"
-#include "./geometry.c"
-#include "./data.c"
-#include "./init.c"
-#include "./debug.c"
+#include "./utilities.c"
+// 
+// #include "./types.c"
+// #include "./simulation.c"
+// #include "./geometry.c"
+// #include "./data.c"
+// #include "./init.c"
+// #include "./debug.c"
+// 
 
-#define TIMESTEPS 1000
+#define TEST_LIST 1
+#define DEBUG_LIST 0
+
+#include "./list.c"
+
+// #define TIMESTEPS 1000
+
+#if TEST_LIST
+
+void main(int argc, char **argv)
+{
+  List list = initList(sizeof(double), 0);
+
+  for(double d = 0.0; d < 100.0; d += 1) {
+    list_insert(&list, &d);
+  }
+
+  long count;
+  double* data;
+
+  for(long l = 0; l < 10; l++) {
+    list_count(&list, &count);
+    list_remove(&list, getRandomInt(count));
+  }
+
+  list_read(&list, &count, (void**)&data);
+  printf("%ld: %lf\n", count-1, data[count-1]);
+
+  for(long l = 0; l < 10; l++) {
+    list_count(&list, &count);
+    list_remove(&list, getRandomInt(count));
+  }
+  
+  list_read(&list, &count, (void**)&data);
+  printf("%ld: %lf\n", count-1, data[count-1]);
+}
+
+#else
 
 void main(int argc, char **argv)
 {
@@ -46,3 +86,5 @@ void main(int argc, char **argv)
 
   murderMPI();
 }
+
+#endif

@@ -30,6 +30,7 @@ typedef struct {
 typedef struct Tile{
   double x;
   double y;
+  long id;
 
   bool isWaterTile;
 

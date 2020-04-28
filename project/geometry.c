@@ -70,6 +70,7 @@ TileGeometry generateIsland(
       bool isLand = (i >= oceanBorderTiles && i < (tilesWide - oceanBorderTiles)) && (j >= oceanBorderTiles && j < (tilesHigh - oceanBorderTiles));
 
       long tileIndex = i*tilesWide + j;
+      tiles[tileIndex].id = tileIndex;
       tiles[tileIndex].x = (double) i;
       tiles[tileIndex].y = (double) j;
       tiles[tileIndex].isWaterTile = !isLand;

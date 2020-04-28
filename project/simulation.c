@@ -33,8 +33,17 @@ void migrateRabbits(
 }
 
 void migrateFox(Tile* from, Tile* to, long timestep){
+  if (from->historicalData[timestep].foxCount == 0)
+    return;
+
+  // select fox
+  int selectedFoxIndex = 0; // last in last out is current principal
+  Fox emigrant = removeFoxFromTile(from, selectedFoxIndex, timestep);
+  addFoxToTile(to, emigrant, timestep);
   from->historicalData[timestep].foxCount -= 1;
   to->historicalData[timestep].foxCount += 1;
+
+
 }
 
 void migrateFoxes(

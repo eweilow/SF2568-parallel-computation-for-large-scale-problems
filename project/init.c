@@ -1,3 +1,4 @@
+static int MAX_TILE_FOX_COUNT = 40;
 
 Rabbit initializeRabbit(long timestep){
   Rabbit rabbit;
@@ -23,7 +24,7 @@ Fox initializeFox(long timestep) {
 }
 
 Fox* initializeFoxes(long nFoxes, long timestep) {
-  Fox* foxes = (Fox*) calloc(nFoxes, sizeof(Fox));
+  Fox* foxes = (Fox*) calloc(MAX_TILE_FOX_COUNT, sizeof(Fox));
   for(int i=0; i < nFoxes; i++) {
     foxes[i] = initializeFox(timestep);
   }

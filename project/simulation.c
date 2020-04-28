@@ -1,6 +1,4 @@
-#include "./utilities.c"
-
-
+/*
 void migrateRabbit(Tile* from, Tile* to, long timestep){
   from->historicalData[timestep].rabbitCount -= 1;
   to->historicalData[timestep].rabbitCount += 1;
@@ -42,8 +40,6 @@ void migrateFox(Tile* from, Tile* to, long timestep){
   addFoxToTile(to, emigrant, timestep);
   from->historicalData[timestep].foxCount -= 1;
   to->historicalData[timestep].foxCount += 1;
-
-
 }
 
 void migrateFoxes(
@@ -84,6 +80,7 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
   vegetationEnd = vegetationEnd < 0.1 ? 0.1 : vegetationEnd;
   tile->historicalData[currentTimeStep].vegetation = vegetationEnd;
 }
+*/
 
 void startDataOfNewDay(Tile* tile, int currentTimeStep) {
   List rabbitsList = tile->historicalData[currentTimeStep - 1].rabbitsList;
@@ -95,6 +92,7 @@ void startDataOfNewDay(Tile* tile, int currentTimeStep) {
   tile->historicalData[currentTimeStep].vegetation = vegetationCount;
 }
 
+/*
 void updateTile(
   Tile* tile, // The current tile
   long immediatelyAdjacentTileCount,
@@ -125,3 +123,5 @@ void updateTile(
     currentTimeStep
   );
 }
+
+*/

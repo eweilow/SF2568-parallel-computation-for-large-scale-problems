@@ -3,28 +3,47 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "./utilities.c"
-// 
-// #include "./types.c"
-// #include "./simulation.c"
-// #include "./geometry.c"
-// #include "./data.c"
-// #include "./init.c"
-// #include "./debug.c"
-// 
+#define TIMESTEPS 1000
 
-#define TEST_LIST 1
+#define TEST_LIST 0
 #define DEBUG_LIST 0
+#define DEBUG_GEOMETRY 0
+#define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
+#define DEBUG_SIMULATION 1
+#define DEBUG_SIMULATION_DATA 0
 
-#include "./list.c"
 
-// #define TIMESTEPS 1000
+#include "./utils/rand.c"
+#include "./utils/list.c"
+
+#include "./data/mpi.c"
+#include "./data/types.c"
+
+#include "./debug.c"
+
+#include "./simulation/migration.c"
+#include "./simulation/birth.c"
+#include "./simulation/death.c"
+
+#include "./simulation.c"
+#include "./geometry/rectilinear.c"
+#include "./geometry/debug.c"
+
+#include "./init.c"
+
 
 #if TEST_LIST
 
 void main(int argc, char **argv)
 {
-  List list = initList(sizeof(double), 0);
+  List list = initList(sizeof(Fox), 0);
+  List list2 = list_clone(&list);
+
+  Fox fox;
+  list_insert(&list2, &fox);
+  list_remove(&list2, 0, &fox);
+  
+  list = initList(sizeof(double), 0);
 
   for(double d = 0.0; d < 100.0; d += 1) {
     list_insert(&list, &d);
@@ -58,13 +77,36 @@ void main(int argc, char **argv)
   spawnMPI();
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(5, 5, 2, 0.0);
+  TileGeometry geometry = generateIsland(2, 2, 0, 0.0);
+
+  #if DEBUG_GEOMETRY
+    debugGeometryAdjacency(&geometry);
+  #endif
 
   for(long n = 0; n < geometry.tileCount; n++) {
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
+  // migrateFox(geometry.tiles + 0, geometry.tiles + 1, 0, 0);
 
-  debugUpdateTiles(&geometry, 1); // debug at timestep 0
+  debugTiles(&geometry, 0);
+  for(long n = 0; n < geometry.tileCount; n++) {
+    startDataOfNewDay(geometry.tiles + n, 1);
+  }
+
+  migrateFox(geometry.tiles + 0, geometry.tiles + 1, 0, 1);
+  birthRabbit(geometry.tiles + 2, 1);
+  birthRabbit(geometry.tiles + 3, 1);
+  killRabbit(geometry.tiles + 3, 0, 1);
+  birthFox(geometry.tiles + 1, 1);
+  birthFox(geometry.tiles + 1, 1);
+  birthFox(geometry.tiles + 1, 1);
+  birthFox(geometry.tiles + 1, 1);
+  migrateFox(geometry.tiles + 1, geometry.tiles + 2, 1, 1);
+  debugTiles(&geometry, 1);
+  
+
+
+  // debugUpdateTiles(&geometry, 1); // debug at timestep 0
   printf("\n ***** Run sucessful ***** \n");
   // initialize initial element of historicalData
 

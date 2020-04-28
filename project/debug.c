@@ -81,41 +81,13 @@ void debugTiles(
   }
   printf("\n");
 }
-void debugTiles(
-  TileGeometry* geometry,
-  long timestep
-) {
 
-  printf("\ndebug output at timestep %d\n", timestep);
-  printf("(%5s, %5s): %8s %8s %8s\n", "x", "y", "rabbits", "foxes", "veg.");
-  for(long n = 0; n < geometry->tileCount; n++) {
-    printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-      geometry->tiles[n].x,
-      geometry->tiles[n].y,
-      geometry->tiles[n].historicalData[timestep].rabbitCount,
-      geometry->tiles[n].historicalData[timestep].foxCount,
-      geometry->tiles[n].historicalData[timestep].vegetation
-    );
-  }
-}
-
-
+/*
 void debugUpdateTile(
   TileGeometry* geometry,
   long timestep
 ) {
-
-  printf("\ndebug output at timestep %d\n", timestep);
-  printf("(%5s, %5s): %8s %8s %8s\n", "x", "y", "rabbits", "foxes", "veg.");
-  for(long n = 0; n < geometry->tileCount; n++) {
-    printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-      geometry->tiles[n].x,
-      geometry->tiles[n].y,
-      geometry->tiles[n].historicalData[timestep].rabbitCount,
-      geometry->tiles[n].historicalData[timestep].foxCount,
-      geometry->tiles[n].historicalData[timestep].vegetation
-    );
-  }
+  debugTiles(geometry, timestep);
   printf("\n ########### updateTile Start ######## timestep: %d\n", timestep);
 
   long *adjTilesIndPtr = geometry->tiles[0].adjacency.immediatelyAdjacentTileIndices;
@@ -142,6 +114,7 @@ void debugUpdateTile(
     indAdjTiles,
     timestep
   );
+
   printf("\ndebug output at timestep %d\n", timestep+1);
   for(long n = 0; n < geometry->tileCount; n++) {
     printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
@@ -154,72 +127,73 @@ void debugUpdateTile(
   }
 }
 
-  void debugUpdateTiles(
-    TileGeometry* geometry,
-    long timestep
-  ) {
+void debugUpdateTiles(
+  TileGeometry* geometry,
+  long timestep
+) {
 
-    printf("\ndebug output at timestep %d\n", timestep - 1);
-    printf("(%5s, %5s): %8s %8s %8s\n", "x", "y", "rabbits", "foxes", "veg.");
-    long totalNumberOfFoxesBefore = 0.0;
-    for(long n = 0; n < geometry->tileCount; n++) {
-      //totalNumberOfFoxesBefore += 1;//geometry->tiles[n].historicalData[timestep-1].foxCount;
-      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-        geometry->tiles[n].x,
-        geometry->tiles[n].y,
-        geometry->tiles[n].historicalData[timestep-1].rabbitCount,
-        geometry->tiles[n].historicalData[timestep-1].foxCount,
-        geometry->tiles[n].historicalData[timestep-1].vegetation
-      );
-    }
-    printf("Total number of foxes before: %s\n", totalNumberOfFoxesBefore);
-    printf("\n ########### updateTiles Start ######## timestep: %d\n", timestep);
-    int nTiles = geometry->tileCount;
-    for (int j=0; j<nTiles; j++) {
-      long *adjTilesIndPtr = geometry->tiles[j].adjacency.immediatelyAdjacentTileIndices;
-      long *indAdjTilesIndPtr = geometry->tiles[j].adjacency.indirectlyAdjacentTileIndices;
-      int size1 = geometry->tiles[j].adjacency.immediatelyAdjacentTileIndicesCount;
-      int size2 = geometry->tiles[j].adjacency.indirectlyAdjacentTileIndicesCount;
-      Tile imAdjTiles[size1];
-      Tile indAdjTiles[size2];
+  printf("\ndebug output at timestep %d\n", timestep - 1);
+  printf("(%5s, %5s): %8s %8s %8s\n", "x", "y", "rabbits", "foxes", "veg.");
+  long totalNumberOfFoxesBefore = 0.0;
+  for(long n = 0; n < geometry->tileCount; n++) {
+    //totalNumberOfFoxesBefore += 1;//geometry->tiles[n].historicalData[timestep-1].foxCount;
+    printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
+      geometry->tiles[n].x,
+      geometry->tiles[n].y,
+      geometry->tiles[n].historicalData[timestep-1].rabbitCount,
+      geometry->tiles[n].historicalData[timestep-1].foxCount,
+      geometry->tiles[n].historicalData[timestep-1].vegetation
+    );
+  }
+  printf("Total number of foxes before: %s\n", totalNumberOfFoxesBefore);
+  printf("\n ########### updateTiles Start ######## timestep: %d\n", timestep);
+  int nTiles = geometry->tileCount;
+  for (int j=0; j<nTiles; j++) {
+    long *adjTilesIndPtr = geometry->tiles[j].adjacency.immediatelyAdjacentTileIndices;
+    long *indAdjTilesIndPtr = geometry->tiles[j].adjacency.indirectlyAdjacentTileIndices;
+    int size1 = geometry->tiles[j].adjacency.immediatelyAdjacentTileIndicesCount;
+    int size2 = geometry->tiles[j].adjacency.indirectlyAdjacentTileIndicesCount;
+    Tile imAdjTiles[size1];
+    Tile indAdjTiles[size2];
 
-      for (int i=0; i<size1; i++){
-        imAdjTiles[i] = geometry->tiles[adjTilesIndPtr[i]];
-      }
-      for (int i=0; i<size2; i++){
-        indAdjTiles[i] = geometry->tiles[indAdjTilesIndPtr[i]];
-      }
+    for (int i=0; i<size1; i++){
+      imAdjTiles[i] = geometry->tiles[adjTilesIndPtr[i]];
+    }
+    for (int i=0; i<size2; i++){
+      indAdjTiles[i] = geometry->tiles[indAdjTilesIndPtr[i]];
+    }
 
-      updateTile(
-        &(geometry->tiles[j]),
-        size1,
-        imAdjTiles,
-        size2,
-        indAdjTiles,
-        timestep
-      );
-    }
-    printf("\ndebug output at timestep %d\n", timestep);
-    int totalNumberOfFoxes = 0;
-    for(long n = 0; n < geometry->tileCount; n++) {
-    //  totalNumberOfFoxes += geometry->tiles[n].historicalData[timestep].foxCount;
-      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-        geometry->tiles[n].x,
-        geometry->tiles[n].y,
-        geometry->tiles[n].historicalData[timestep].rabbitCount,
-        geometry->tiles[n].historicalData[timestep].foxCount,
-        geometry->tiles[n].historicalData[timestep].vegetation
-      );
-    }
-    printf("Total number of foxes after: %s\n", totalNumberOfFoxes);
-    printf("\ndebug output of previous timestep at timestep %d\n", timestep);
-    for(long n = 0; n < geometry->tileCount; n++) {
-      printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
-        geometry->tiles[n].x,
-        geometry->tiles[n].y,
-        geometry->tiles[n].historicalData[timestep-1].rabbitCount,
-        geometry->tiles[n].historicalData[timestep-1].foxCount,
-        geometry->tiles[n].historicalData[timestep-1].vegetation
-      );
-    }
+    updateTile(
+      &(geometry->tiles[j]),
+      size1,
+      imAdjTiles,
+      size2,
+      indAdjTiles,
+      timestep
+    );
+  }
+  printf("\ndebug output at timestep %d\n", timestep);
+  int totalNumberOfFoxes = 0;
+  for(long n = 0; n < geometry->tileCount; n++) {
+  //  totalNumberOfFoxes += geometry->tiles[n].historicalData[timestep].foxCount;
+    printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
+      geometry->tiles[n].x,
+      geometry->tiles[n].y,
+      geometry->tiles[n].historicalData[timestep].rabbitCount,
+      geometry->tiles[n].historicalData[timestep].foxCount,
+      geometry->tiles[n].historicalData[timestep].vegetation
+    );
+  }
+  printf("Total number of foxes after: %s\n", totalNumberOfFoxes);
+  printf("\ndebug output of previous timestep at timestep %d\n", timestep);
+  for(long n = 0; n < geometry->tileCount; n++) {
+    printf("(%5.2f, %5.2f): %8d %8d %8.2f\n",
+      geometry->tiles[n].x,
+      geometry->tiles[n].y,
+      geometry->tiles[n].historicalData[timestep-1].rabbitCount,
+      geometry->tiles[n].historicalData[timestep-1].foxCount,
+      geometry->tiles[n].historicalData[timestep-1].vegetation
+    );
+  }
 }
+*/

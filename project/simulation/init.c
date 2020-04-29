@@ -15,4 +15,7 @@ void initializeTile(
   }
     
   tile->historicalData[0].vegetation = 0.25;
+
+  tile->rabbitMigrationsList = initList(sizeof(RabbitMigration), 0);
+  tile->foxMigrationsList = initList(sizeof(FoxMigration), 0);
 }

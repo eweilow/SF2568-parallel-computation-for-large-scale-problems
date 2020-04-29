@@ -25,6 +25,7 @@
 #include "./data/mpi.c"
 #include "./data/types.c"
 #include "./data/helper.c"
+#include "./data/migrations.c"
 
 #include "./simulation/migration.c"
 #include "./simulation/birth.c"
@@ -116,6 +117,7 @@ void main(int argc, char **argv)
       startDataOfNewDay(geometry.tiles + n, ts);
     }
     simulateDay(&geometry, ts);
+    applyMigrations(&geometry, ts);
   }
   debugTiles(&geometry, TIMESTEPS - 1);
 

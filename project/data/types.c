@@ -12,13 +12,11 @@ typedef struct {
 
 typedef struct {
   Rabbit rabbit;
-  long fromTile;
   long toTile;
 } RabbitMigration;
 
 typedef struct {
   Fox fox;
-  long fromTile;
   long toTile;
 } FoxMigration;
 
@@ -47,6 +45,9 @@ typedef struct Tile{
 
   long historicalDataCount;
   TileData* historicalData;
+
+  List rabbitMigrationsList; // List of all rabbits migrating out from this tile at the end of the current time step
+  List foxMigrationsList; // List of all foxes migrating out from this tile at the end of the current time step
 
   TileAdjacency adjacency;
 } Tile;

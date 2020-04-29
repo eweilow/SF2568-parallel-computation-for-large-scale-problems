@@ -1,6 +1,13 @@
 // Migrate a rabbit with index 'fromIndex' in tile 'from', from tile 'from' to another tile 'to'.
 // This is done in the provided timestep.
 bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
+  if(from->id == to->id) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING RABBIT MIGRATION @ INDEX %ld FROM tile.%llu TO SELF.\n", timestep, fromIndex, from->id);
+    #endif
+    return true;
+  }
+
   List *fromList = getRabbits(from, timestep);
   List *toList = getRabbits(to, timestep);
   
@@ -26,8 +33,12 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
   // Remove the rabbit from the 'from' tile list of rabbits
   list_remove(fromList, fromIndex, &rabbit);
   
-  // Add the rabbit to the 'to' tile list of rabbits
-  list_insert(toList, &rabbit);
+  // Add the rabbit to the list of rabbit mgirations
+  RabbitMigration migration;
+  migration.rabbit = rabbit;
+  migration.toTile = to->id;
+  list_insert(&from->rabbitMigrationsList, &migration);
+  // list_insert(toList, &rabbit);
 
   #if DEBUG_SIMULATION
     char rabbitId[50];
@@ -46,6 +57,13 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
 // Migrate a fox with index 'fromIndex' in tile 'from', from tile 'from' to another tile 'to'.
 // This is done in the provided timestep.
 bool migrateFox(Tile* from, Tile* to, long fromIndex, long timestep) {
+  if(from->id == to->id) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING FOX MIGRATION @ INDEX %ld FROM tile.%llu TO SELF.\n", timestep, fromIndex, from->id);
+    #endif
+    return true;
+  }
+
   List *fromList = getFoxes(from, timestep);
   List *toList = getFoxes(to, timestep);
   
@@ -71,8 +89,12 @@ bool migrateFox(Tile* from, Tile* to, long fromIndex, long timestep) {
   // Remove the fox from the 'from' tile list of foxes
   list_remove(fromList, fromIndex, &fox);
   
-  // Add the fox to the 'to' tile list of foxes
-  list_insert(toList, &fox);
+  // Add the fox to the list of fox mgirations
+  FoxMigration migration;
+  migration.fox = fox;
+  migration.toTile = to->id;
+  list_insert(&from->foxMigrationsList, &migration);
+  // list_insert(toList, &fox);
 
   #if DEBUG_SIMULATION
     char foxId[50];

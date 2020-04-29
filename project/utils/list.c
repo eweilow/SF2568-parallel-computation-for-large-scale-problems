@@ -166,6 +166,12 @@ void list_read(
 }
 
 
+void list_clear(
+  List* list
+) {
+  list->elementCount = 0;
+}
+
 List list_clone(
   List* list
 ) {

@@ -71,7 +71,7 @@ TileGeometry generateIsland(
     for(long j = 0; j < tilesHigh; j++) {
       bool isLand = (i >= oceanBorderTiles && i < (tilesWide - oceanBorderTiles)) && (j >= oceanBorderTiles && j < (tilesHigh - oceanBorderTiles));
 
-      long tileIndex = i*tilesHigh + j;
+      u_int64_t tileIndex = (u_int64_t)(i*tilesHigh + j);
       tiles[tileIndex].id = tileIndex;
       tiles[tileIndex].x = (double) i;
       tiles[tileIndex].y = (double) j;

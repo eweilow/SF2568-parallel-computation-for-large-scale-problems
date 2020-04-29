@@ -43,7 +43,7 @@ void debugTileRabbits(
   list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
 
   for(long l = 0; l < rabbitsCount; l++) {
-    printf("  %5ld %5ld %5ld\n", tile->id, rabbits[l].id, rabbits[l].birthDay);
+    printf("  %5llu %5llu %5ld\n", tile->id, rabbits[l].id, rabbits[l].birthDay);
   }
 }
 
@@ -58,7 +58,7 @@ void debugTileFoxes(
   list_read(&data.foxesList, &foxesCount, (void**)&foxes);
 
   for(long l = 0; l < foxesCount; l++) {
-    printf("  %5ld %5ld %5ld | %5.4lf\n", tile->id, foxes[l].id, foxes[l].birthDay, foxes[l].hunger);
+    printf("  %5llu %5llu %5ld | %5.4lf\n", tile->id, foxes[l].id, foxes[l].birthDay, foxes[l].hunger);
   }
 }
 
@@ -68,7 +68,7 @@ void debugTile(
 ) {
 
   TileData data = tile->historicalData[timestep];
-  printf("%5ld (%5.2f, %5.2f): %8d %8d %8.2f\n",
+  printf("%5llu (%5.2f, %5.2f): %8d %8d %8.2f\n",
     tile->id,
     tile->x,
     tile->y,

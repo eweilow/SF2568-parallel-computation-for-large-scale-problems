@@ -7,6 +7,7 @@
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0
+#define DEBUG_IDS 0
 #define DEBUG_GEOMETRY 0
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 1
@@ -75,9 +76,27 @@ void main(int argc, char **argv)
 
 #else
 
+#if DEBUG_IDS
+  void debugBinary(u_int64_t value, u_int64_t bits) {
+    for(u_int64_t bit = 0; bit < bits; bit++) {
+      u_int64_t b = ((u_int64_t) 1) << (bits - bit - 1);
+      u_int64_t v = (value & b) == b;
+      // printf("%llu %llu %llu\n", bit, value, v);
+      printf("%llu", v);
+    }
+    printf("\n");
+  }
+#endif
+
 void main(int argc, char **argv)
 {
   spawnMPI();
+
+  #if DEBUG_IDS
+    u_int64_t id = getNextId((u_int64_t)1);
+    debugBinary(id, sizeof(u_int64_t)*8);
+    debugBinary(id >> 40, sizeof(u_int64_t)*8);
+  #endif
 
   // initialize geometry data on root process
   TileGeometry geometry = generateIsland(5, 5, 0, 0.0);

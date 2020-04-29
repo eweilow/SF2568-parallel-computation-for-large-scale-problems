@@ -1,14 +1,26 @@
 typedef struct {
   long birthDay;
-  long id;
+  u_int64_t id;
 } Rabbit;
 
 typedef struct {
   long birthDay;
-  long id;
+  u_int64_t id;
 
   double hunger;
 } Fox;
+
+typedef struct {
+  Rabbit rabbit;
+  long fromTile;
+  long toTile;
+} RabbitMigration;
+
+typedef struct {
+  Fox fox;
+  long fromTile;
+  long toTile;
+} FoxMigration;
 
 typedef struct {
   List rabbitsList;
@@ -29,7 +41,7 @@ typedef struct {
 typedef struct Tile{
   double x;
   double y;
-  long id;
+  u_int64_t id;
 
   bool isWaterTile;
 

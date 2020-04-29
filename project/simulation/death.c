@@ -4,14 +4,14 @@ bool killRabbit(Tile* inTile, long index, long timestep) {
   long inListCount = lengthOfList(inList);
   if(inListCount == 0) {
     #if DEBUG_SIMULATION
-      printf("[SIM.%ld] TILE tile.%ld HAS NO RABBITS. CANNOT KILL @ %ld\n", timestep, inTile->id, index);
+      printf("[SIM.%ld] TILE tile.%llu HAS NO RABBITS. CANNOT KILL @ %ld\n", timestep, inTile->id, index);
     #endif
     return false;
   }
   if(index < 0 || index >= inListCount) {
     #if DEBUG_SIMULATION
       fprintf(stderr, ANSI_COLOR_RED);
-      fprintf(stderr, "[SIM.%ld] CANNOT KILL RABBIT IN tile.%ld. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, inTile->id, index, inListCount);
+      fprintf(stderr, "[SIM.%ld] CANNOT KILL RABBIT IN tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, inTile->id, index, inListCount);
       fprintf(stderr, ANSI_COLOR_RESET);
     #endif
     return false;
@@ -22,7 +22,9 @@ bool killRabbit(Tile* inTile, long index, long timestep) {
   list_remove(inList, index, &rabbit);
 
   #if DEBUG_SIMULATION
-    printf("[SIM.%ld] KILL rabbit.%ld IN tile.%ld\n", timestep, rabbit.id, inTile->id);
+    char rabbitId[50];
+    formatGlobalId(rabbit.id, rabbitId);
+    printf("[SIM.%ld] KILL rabbit.%s IN tile.%llu\n", timestep, rabbitId, inTile->id);
     #if DEBUG_SIMULATION_DATA
       printf("[SIM.%ld]  >  Removed data: ", timestep);
       debugRabbit(&rabbit);
@@ -38,14 +40,14 @@ bool killFox(Tile* inTile, long index,  long timestep) {
   long inListCount = lengthOfList(inList);
   if(inListCount == 0) {
     #if DEBUG_SIMULATION
-      printf("[SIM.%ld] TILE tile.%ld HAS NO RABBITS. CANNOT KILL @ %ld\n", timestep, inTile->id, index);
+      printf("[SIM.%ld] TILE tile.%llu HAS NO RABBITS. CANNOT KILL @ %ld\n", timestep, inTile->id, index);
     #endif
     return false;
   }
   if(index < 0 || index >= inListCount) {
     #if DEBUG_SIMULATION
       fprintf(stderr, ANSI_COLOR_RED);
-      fprintf(stderr, "[SIM.%ld] CANNOT KILL FOX IN tile.%ld. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, inTile->id, index, inListCount);
+      fprintf(stderr, "[SIM.%ld] CANNOT KILL FOX IN tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, inTile->id, index, inListCount);
       fprintf(stderr, ANSI_COLOR_RESET);
     #endif
     return false;
@@ -56,7 +58,9 @@ bool killFox(Tile* inTile, long index,  long timestep) {
   list_remove(inList, index, &fox);
 
   #if DEBUG_SIMULATION
-    printf("[SIM.%ld] KILL fox.%ld IN tile.%ld\n", timestep, fox.id, inTile->id);
+    char foxId[50];
+    formatGlobalId(fox.id, foxId);
+    printf("[SIM.%ld] KILL fox.%s IN tile.%llu\n", timestep, foxId, inTile->id);
     #if DEBUG_SIMULATION_DATA
       printf("[SIM.%ld]  >  Removed data: ", timestep);
       debugFox(&fox);

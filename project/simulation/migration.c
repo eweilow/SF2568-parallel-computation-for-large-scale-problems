@@ -7,14 +7,14 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
   long fromListCount = lengthOfList(fromList);
   if(fromListCount == 0) {
     #if DEBUG_SIMULATION
-      printf("[SIM.%ld] TILE tile.%ld HAS NO RABBITS. CANNOT MIGRATE @ INDEX %ld TO tile.%ld. \n", timestep, from->id, fromIndex, to->id);
+      printf("[SIM.%ld] TILE tile.%llu HAS NO RABBITS. CANNOT MIGRATE @ INDEX %ld TO tile.%ld. \n", timestep, from->id, fromIndex, to->id);
     #endif
     return false;
   }
   if(fromIndex < 0 || fromIndex >= fromListCount) {
     #if DEBUG_SIMULATION
       fprintf(stderr, ANSI_COLOR_RED);
-      fprintf(stderr, "[SIM.%ld] CANNOT MIGRATE RABBIT FROM tile.%ld TO tile.%ld. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
+      fprintf(stderr, "[SIM.%ld] CANNOT MIGRATE RABBIT FROM tile.%lllud TO tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
       fprintf(stderr, ANSI_COLOR_RESET);
     #endif
     return false;
@@ -30,7 +30,9 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
   list_insert(toList, &rabbit);
 
   #if DEBUG_SIMULATION
-    printf("[SIM.%ld] MIGRATE rabbit.%ld @ INDEX %ld OF tile.%ld TO tile.%ld\n", timestep, rabbit.id,  fromIndex, from->id, to->id);
+    char rabbitId[50];
+    formatGlobalId(rabbit.id, rabbitId);
+    printf("[SIM.%ld] MIGRATE rabbit.%s @ INDEX %ld OF tile.%llu TO tile.%llu\n", timestep, rabbitId,  fromIndex, from->id, to->id);
     
     #if DEBUG_SIMULATION_DATA
       printf("[SIM.%ld]  >  Moved data: ", timestep);
@@ -50,14 +52,14 @@ bool migrateFox(Tile* from, Tile* to, long fromIndex, long timestep) {
   long fromListCount = lengthOfList(fromList);
   if(fromListCount == 0) {
     #if DEBUG_SIMULATION
-      printf("[SIM.%ld] TILE tile.%ld HAS NO FOXES. CANNOT MIGRATE @ INDEX %ld TO tile.%ld. \n", timestep, from->id, fromIndex, to->id);
+      printf("[SIM.%ld] TILE tile.%llu HAS NO FOXES. CANNOT MIGRATE @ INDEX %ld TO tile.%llu. \n", timestep, from->id, fromIndex, to->id);
     #endif
     return false;
   }
   if(fromIndex < 0 || fromIndex >= fromListCount) {
     #if DEBUG_SIMULATION
       fprintf(stderr, ANSI_COLOR_RED);
-      fprintf(stderr, "[1;31m[SIM.%ld] CANNOT MIGRATE FOX FROM tile.%ld TO tile.%ld. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
+      fprintf(stderr, "[1;31m[SIM.%ld] CANNOT MIGRATE FOX FROM tile.%llu TO tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
       fprintf(stderr, ANSI_COLOR_RESET);
     #endif
     return false;
@@ -73,7 +75,9 @@ bool migrateFox(Tile* from, Tile* to, long fromIndex, long timestep) {
   list_insert(toList, &fox);
 
   #if DEBUG_SIMULATION
-    printf("[SIM.%ld] MIGRATE fox.%ld @ INDEX %ld OF tile.%ld TO tile.%ld\n", timestep, fox.id, fromIndex, from->id, to->id);
+    char foxId[50];
+    formatGlobalId(fox.id, foxId);
+    printf("[SIM.%ld] MIGRATE fox.%s @ INDEX %ld OF tile.%llu TO tile.%llu\n", timestep, foxId, fromIndex, from->id, to->id);
     
     #if DEBUG_SIMULATION_DATA
       printf("[SIM.%ld]  >  Moved data: ", timestep);

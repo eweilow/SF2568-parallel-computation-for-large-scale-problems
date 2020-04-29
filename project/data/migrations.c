@@ -16,7 +16,9 @@ void applyRabbitMigrations(
 
     List *toList = getRabbits(toTile, ts);
 
+#if DEBUG_IPC
     printf("[DATA] rabbit.%s moves from %llu to %llu\n", rabbitId, tile->id, toTile->id);
+#endif
     list_insert(toList, &migrations[n].rabbit);
   }
   list_clear(migrationsList);
@@ -40,7 +42,9 @@ void applyFoxMigrations(
 
     List *toList = getFoxes(toTile, ts);
 
+#if DEBUG_IPC
     printf("[DATA] fox.%s moves from %llu to %llu\n", foxId, tile->id, toTile->id);
+#endif
     list_insert(toList, &migrations[n].fox);
   }
   list_clear(migrationsList);

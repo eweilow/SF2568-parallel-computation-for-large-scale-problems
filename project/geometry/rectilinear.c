@@ -118,7 +118,7 @@ TileGeometry generateIsland(
 
       double x = ((double) (i + 1)) * tileSize;
       double y = ((double) (j + 1)) * tileSize;
-      printf("%lf %lf: %lf %d\n", x, y, isWaterProbability, isWaterTile);
+      // printf("%lf %lf: %lf %d\n", x, y, isWaterProbability, isWaterTile);
 
       long px = (long)floor((x - tileSize/2) / dpx);
       long py = (long)floor((y - tileSize/2) / dpy);

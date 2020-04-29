@@ -43,7 +43,9 @@ void debugTileRabbits(
   list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
 
   for(long l = 0; l < rabbitsCount; l++) {
-    printf("  %5llu %5llu %5ld\n", tile->id, rabbits[l].id, rabbits[l].birthDay);
+    char rabbitId[50];
+    formatGlobalId(rabbits[l].id, rabbitId);
+    printf("  %5llu %7s %5ld\n", tile->id, rabbitId, rabbits[l].birthDay);
   }
 }
 
@@ -58,7 +60,9 @@ void debugTileFoxes(
   list_read(&data.foxesList, &foxesCount, (void**)&foxes);
 
   for(long l = 0; l < foxesCount; l++) {
-    printf("  %5llu %5llu %5ld | %5.4lf\n", tile->id, foxes[l].id, foxes[l].birthDay, foxes[l].hunger);
+    char foxId[50];
+    formatGlobalId(foxes[l].id, foxId);
+    printf("  %5llu %7s %5ld | %5.4lf\n", tile->id, foxId, foxes[l].birthDay, foxes[l].hunger);
   }
 }
 
@@ -92,13 +96,13 @@ void debugTiles(
 
   #if DEBUG_INDIVIDUAL_ANIMALS
     printf("== all rabbits at timestep %ld ==\n", timestep);
-    printf("  %5s %5s %5s\n", "tile", "id", "born");
+    printf("  %5s %7s %5s\n", "tile", "id", "born");
     for(long n = 0; n < geometry->tileCount; n++) {
       debugTileRabbits(geometry->tiles + n, timestep);
     }
 
     printf("== all foxes at timestep %ld ==\n", timestep);
-    printf("  %5s %5s %5s | %s \n", "tile", "id", "born", "hunger");
+    printf("  %5s %7s %5s | %s \n", "tile", "id", "born", "hunger");
     for(long n = 0; n < geometry->tileCount; n++) {
       debugTileFoxes(geometry->tiles + n, timestep);
     }

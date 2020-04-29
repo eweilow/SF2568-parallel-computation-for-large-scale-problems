@@ -156,6 +156,7 @@ int main(int argc, char **argv)
 
   FILE *fp = fopen("./data.bin", "w");
   fwrite(&geometry.tileCount, sizeof(long), 1, fp);
+  fwrite(&geometry.tileSize, sizeof(double), 1, fp);
   for(long n = 0; n < geometry.tileCount; n++) {
     Tile tile = geometry.tiles[n];
     fwrite(&tile.x, sizeof(double), 1, fp);

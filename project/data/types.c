@@ -56,6 +56,8 @@ typedef struct Tile{
 } Tile;
 
 typedef struct {
+  double tileSize;
+  
   long tilesWide; 
   long tilesHigh; 
   long tileCount;

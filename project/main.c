@@ -151,7 +151,37 @@ int main(int argc, char **argv)
 
   // store to file in each child
 
+  printf("\n ***** Killing MPI ***** \n");
   murderMPI();
+
+  FILE *fp = fopen("./data.bin", "w");
+  fwrite(&geometry.tileCount, sizeof(long), 1, fp);
+  for(long n = 0; n < geometry.tileCount; n++) {
+    Tile tile = geometry.tiles[n];
+    fwrite(&tile.x, sizeof(double), 1, fp);
+    fwrite(&tile.y, sizeof(double), 1, fp);
+    fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
+    fwrite(&tile.process, sizeof(long), 1, fp);
+    fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
+    fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
+    fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
+    for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+      TileData data = tile.historicalData[ts];
+      fwrite(&data.vegetation, sizeof(double), 1, fp);
+
+      long rabbitsCount;
+      Rabbit *rabbits;
+      list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+      fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+
+      long foxesCount;
+      Rabbit *foxes;
+      list_read(&data.rabbitsList, &foxesCount, (void**)&foxes);
+      fwrite(foxes, sizeof(Fox), foxesCount, fp);
+    }
+  }
+  fclose(fp);
+  printf("\n ***** Data saved ***** \n");
 
   return 0;
 }

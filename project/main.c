@@ -10,7 +10,7 @@
 #define TEST_LIST 0
 #define DEBUG_LIST 0
 #define DEBUG_IDS 0
-#define DEBUG_GEOMETRY 1
+#define DEBUG_GEOMETRY 0
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 1
 #define DEBUG_SIMULATION_DATA 0

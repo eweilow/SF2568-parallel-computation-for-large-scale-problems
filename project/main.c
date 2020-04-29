@@ -20,6 +20,7 @@
 #include "./utils/rand.c"
 #include "./utils/list.c"
 
+#include "./data/id.c"
 #include "./data/mpi.c"
 #include "./data/types.c"
 #include "./data/helper.c"

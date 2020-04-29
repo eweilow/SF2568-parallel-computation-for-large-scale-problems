@@ -30,6 +30,7 @@
 #include "./simulation/init.c"
 #include "./simulation/startDay.c"
 #include "./simulation/simulateDay.c"
+#include "./simulation/rules.c"
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
@@ -44,7 +45,7 @@ void main(int argc, char **argv)
   Fox fox;
   list_insert(&list2, &fox);
   list_remove(&list2, 0, &fox);
-  
+
   list = initList(sizeof(double), 0);
 
   for(double d = 0.0; d < 100.0; d += 1) {
@@ -67,7 +68,7 @@ void main(int argc, char **argv)
     list_count(&list, &count);
     list_remove(&list, getRandomInt(count), &removed);
   }
-  
+
   list_read(&list, &count, (void**)&data);
   printf("%ld: %lf\n", count-1, data[count-1]);
 }
@@ -88,7 +89,7 @@ void main(int argc, char **argv)
   for(long n = 0; n < geometry.tileCount; n++) {
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
-  
+
   debugTiles(&geometry, 0);
 
   for(long ts = 1; ts < TIMESTEPS; ts++) {

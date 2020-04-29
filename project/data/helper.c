@@ -49,6 +49,13 @@ List* getRabbits(
   return &data->rabbitsList;
 }
 
+size_t* getRabbitCount(Tile* tile, long timestep){
+  List* rabbits = getRabbits(tile, timestep);
+  size_t* count = (size_t*) -1;
+  list_count(rabbits, count);
+  return count;
+}
+
 List* getFoxes(
   Tile* tile,
   long timestep

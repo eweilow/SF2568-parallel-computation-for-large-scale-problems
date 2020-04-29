@@ -31,6 +31,7 @@
 #include "./simulation/startDay.c"
 #include "./simulation/simulateDay.c"
 #include "./simulation/rules.c"
+#include "./simulation/tileSimulation.c"
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"

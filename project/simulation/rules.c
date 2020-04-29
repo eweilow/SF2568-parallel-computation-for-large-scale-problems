@@ -1,9 +1,5 @@
 ///////////////// VEGETATION /////////////////////
 
-// vegetationAtEndOfDayRule()
-// - in: double vegetationLevelAtStartOfDayOfTile
-//       long number of rabbits at startOfNewDay
-// - out: long vegetationAtEndOfDay
 double vegetationAtEndOfDayRule(double vegetationAtStartOfDay, long nRabbitsAtStartOfDay) {
   double vegetationAtEndOfDay = 1.1*(vegetationAtStartOfDay - 0.001*nRabbitsAtStartOfDay);
   vegetationAtEndOfDay = vegetationAtEndOfDay > 1.0 ? 1.0 : vegetationAtEndOfDay;
@@ -11,7 +7,12 @@ double vegetationAtEndOfDayRule(double vegetationAtStartOfDay, long nRabbitsAtSt
   return vegetationAtEndOfDay;
 }
 
+
 ///////////////// RABBITS ///////////////////////
+bool isRabbitBirthingDay(long timestep) {
+  return timestep % (7*7) == 0;
+}
+
 long numberOfRabbitsToMigrateAtEndOfDayRule(long nRabbitsAtEndOfDay){
   return nRabbitsAtEndOfDay / 5;
 }
@@ -60,10 +61,10 @@ long rabbitLitterSizeRule(double vegetationLevel, long nRabbitsAtStartOfDay){
 }
 
 
-
-
-
 ///////////////// FOXES /////////////////////////
+bool isFoxBirthingDay(long timestep) {
+  return timestep % (28*6) == 0;
+}
 
 long foxesLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
   if (nFoxesAtStartOfDay < 2)

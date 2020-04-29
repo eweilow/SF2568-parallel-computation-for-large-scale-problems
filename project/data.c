@@ -1,7 +1,0 @@
-void spawnMPI() {
-  
-}
-
-void murderMPI() {
-  
-}

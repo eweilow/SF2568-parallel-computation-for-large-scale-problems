@@ -2,13 +2,15 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include <time.h>
 
 #define TIMESTEPS 5
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0
 #define DEBUG_IDS 0
-#define DEBUG_GEOMETRY 0
+#define DEBUG_GEOMETRY 1
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 1
 #define DEBUG_SIMULATION_DATA 0
@@ -89,7 +91,7 @@ void main(int argc, char **argv)
   }
 #endif
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   spawnMPI();
 
@@ -99,12 +101,18 @@ void main(int argc, char **argv)
     debugBinary(id >> 40, sizeof(u_int64_t)*8);
   #endif
 
-  // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(5, 5, 0, 0.0);
+  long rank = 0;
 
+  srand(time(0)); // Deterministic random numbers on all processes
+
+  // initialize geometry data on root process
+  TileGeometry geometry = generateIsland(5, 5, 0, 0.1, 1, 1, rank);
+  
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
+
+  srand(time(0) + rank); 
 
   for(long n = 0; n < geometry.tileCount; n++) {
     initializeTile(geometry.tiles + n, TIMESTEPS);
@@ -143,6 +151,8 @@ void main(int argc, char **argv)
   // store to file in each child
 
   murderMPI();
+
+  return 0;
 }
 
 #endif

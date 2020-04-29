@@ -5,15 +5,15 @@ void debugGeometryAdjacency(
   for(long i = 0; i < geometry->tilesWide; i++) {
     for(long j = 0; j < geometry->tilesHigh; j++) {
       long self = i*geometry->tilesHigh + j;
-      printf("x = %.2f, y = %.2f\n water: %d\n", tiles[self].x, tiles[self].y, tiles[self].isWaterTile);
+      printf("id = %llu, x = %.2f, y = %.2f\n water: %d\n", tiles[self].id, tiles[self].x, tiles[self].y, tiles[self].isWaterTile);
 
       for(long n = 0; n < tiles[self].adjacency.immediatelyAdjacentTileIndicesCount; n++) {
         long other = tiles[self].adjacency.immediatelyAdjacentTileIndices[n];
-        printf(" (%.2f, %.2f) -> (%.2f, %.2f)\n", tiles[self].x, tiles[self].y, tiles[other].x, tiles[other].y);
+        printf(" (%llu -> %llu, %ld): (%.2f, %.2f) -> (%.2f, %.2f)\n", tiles[self].id, tiles[other].id, other, tiles[self].x, tiles[self].y, tiles[other].x, tiles[other].y);
       }
       for(long n = 0; n < tiles[self].adjacency.indirectlyAdjacentTileIndicesCount; n++) {
         long other = tiles[self].adjacency.indirectlyAdjacentTileIndices[n];
-        printf(" (%.2f, %.2f) /'''\\> (%.2f, %.2f)\n", tiles[self].x, tiles[self].y, tiles[other].x, tiles[other].y);
+        printf(" (%llu -> %llu, %ld): (%.2f, %.2f) /'''\\> (%.2f, %.2f)\n", tiles[self].id, tiles[other].id, other, tiles[self].x, tiles[self].y, tiles[other].x, tiles[other].y);
       }
     }
   }
@@ -72,8 +72,9 @@ void debugTile(
 ) {
 
   TileData data = tile->historicalData[timestep];
-  printf("%5llu (%5.2f, %5.2f): %8d %8d %8.2f\n",
+  printf("%5llu %8ld (%5.2f, %5.2f): %8d %8d %8.2f\n",
     tile->id,
+    tile->process,
     tile->x,
     tile->y,
     data.rabbitsList.elementCount,
@@ -89,7 +90,7 @@ void debugTiles(
 
   printf("\n");
   printf("== tiles at timestep %ld ==\n", timestep);
-  printf("%5s (%5s, %5s): %8s %8s %8s\n", "id", "x", "y", "rabbits", "foxes", "veg.");
+  printf("%5s %8s (%5s, %5s): %8s %8s %8s\n", "id", "process", "x", "y", "rabbits", "foxes", "veg.");
   for(long n = 0; n < geometry->tileCount; n++) {
     debugTile(geometry->tiles + n, timestep);
   }

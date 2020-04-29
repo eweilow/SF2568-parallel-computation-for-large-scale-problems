@@ -41,6 +41,9 @@ typedef struct Tile{
   double y;
   u_int64_t id;
 
+  long process;
+  bool isOwnedByThisProcess;
+
   bool isWaterTile;
 
   long historicalDataCount;
@@ -57,4 +60,7 @@ typedef struct {
   long tilesHigh; 
   long tileCount;
   Tile* tiles;
+
+  long ownTileCount;
+  long* ownTileIndices;
 } TileGeometry;

@@ -7,6 +7,13 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
     #endif
     return true;
   }
+  if(to->isWaterTile) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING RABBIT MIGRATION @ INDEX %ld FROM tile.%llu TO WATER TILE.\n", timestep, fromIndex, from->id);
+    #endif
+    return false;
+  }
+
 
   List *fromList = getRabbits(from, timestep);
   List *toList = getRabbits(to, timestep);
@@ -62,6 +69,12 @@ bool migrateFox(Tile* from, Tile* to, long fromIndex, long timestep) {
       printf("[SIM.%ld] SKIPPING FOX MIGRATION @ INDEX %ld FROM tile.%llu TO SELF.\n", timestep, fromIndex, from->id);
     #endif
     return true;
+  }
+  if(to->isWaterTile) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING FOX MIGRATION @ INDEX %ld FROM tile.%llu TO WATER TILE.\n", timestep, fromIndex, from->id);
+    #endif
+    return false;
   }
 
   List *fromList = getFoxes(from, timestep);

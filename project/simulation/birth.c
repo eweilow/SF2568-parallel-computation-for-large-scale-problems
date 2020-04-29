@@ -1,5 +1,12 @@
 // Birth a rabbit in the provided tile and timestep.
-void birthRabbit(Tile* inTile, long timestep) {
+bool birthRabbit(Tile* inTile, long timestep) {
+  if(inTile->isWaterTile) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING RABBIT BIRTH IN WATER TILE tile.%llu.\n", timestep, inTile->id);
+    #endif
+    return false;
+  }
+
   List *inList = getRabbits(inTile, timestep);
 
   Rabbit rabbit;
@@ -21,10 +28,18 @@ void birthRabbit(Tile* inTile, long timestep) {
       #endif
     }
   #endif
+  return true;
 }
 
 // Birth a fox in the provided tile and timestep.
-void birthFox(Tile* inTile, long timestep) {
+bool birthFox(Tile* inTile, long timestep) {
+  if(inTile->isWaterTile) {
+    #if DEBUG_SIMULATION
+      printf("[SIM.%ld] SKIPPING FOX BIRTH IN WATER TILE tile.%llu.\n", timestep, inTile->id);
+    #endif
+    return false;
+  }
+
   List *inList = getFoxes(inTile, timestep);
 
   Fox fox; 
@@ -47,4 +62,5 @@ void birthFox(Tile* inTile, long timestep) {
       #endif
     }
   #endif
+  return true;
 }

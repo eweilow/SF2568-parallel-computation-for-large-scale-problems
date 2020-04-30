@@ -26,8 +26,9 @@
 #include "./utils/list.c"
 
 #include "./data/id.c"
-#include "./data/mpi.c"
 #include "./data/types.c"
+#include "./data/mpi.c"
+#include "./data/debugMpiTypes.c"
 #include "./data/helper.c"
 #include "./data/migrations.c"
 
@@ -96,11 +97,21 @@ void main(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  spawnMPI();
+  long processesWide = 4;
+  long processesHigh = 4;
 
-  long processesWide = 2;
-  long processesHigh = 2;
-  long N = processesWide * processesHigh;
+  long rank, N;
+  bool shouldCompute = spawnMPI(argc, argv, &rank, &N, processesWide, processesHigh);
+
+  #if DEBUG_MPI_TYPES
+    debugMpiTypes(rank);
+    return 0;
+  #endif
+
+  if(!shouldCompute) {
+    murderMPI();
+    return 0;
+  }
 
   List *sendRabbitsLists = (List*) malloc(N * sizeof(List));
   List *sendFoxesList = (List*) malloc(N * sizeof(List));
@@ -111,7 +122,6 @@ int main(int argc, char **argv)
     debugBinary(id >> 40, sizeof(u_int64_t)*8);
   #endif
 
-  long rank = 0;
 
   ProcessAdjacency processAdjacency = getAdjacency(rank, processesWide, processesHigh);
   for(long n = 0; n < ADJACENT_PROCESSES; n++) {
@@ -125,13 +135,13 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(5, 5, 0, 0.1, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(64, 64, 1, 0.1, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
 
-  srand(rank); //time(0) + rank); 
+  srand(time(0) + rank); 
   
   for(long n = 0; n < geometry.ownTileCount; n++) {
     long i = geometry.ownTileIndices[n];

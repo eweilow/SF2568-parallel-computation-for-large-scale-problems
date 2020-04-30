@@ -10,6 +10,9 @@ Tile *getRandomImmediatelyAdjacentTile(
   TileGeometry *geometry,
   Tile* tile
 ) {
+  if(tile->adjacency.immediatelyAdjacentTileIndicesCount == 0) {
+    return NULL;
+  }
   long immediatelyAdjacentTileIndex = getRandomInt(tile->adjacency.immediatelyAdjacentTileIndicesCount);
   long index = tile->adjacency.immediatelyAdjacentTileIndices[immediatelyAdjacentTileIndex];
   return geometry->tiles + index;
@@ -19,6 +22,9 @@ Tile *getRandomIndirectlyAdjacentTile(
   TileGeometry *geometry,
   Tile* tile
 ) {
+  if(tile->adjacency.indirectlyAdjacentTileIndicesCount == 0) {
+    return NULL;
+  }
   long indirectlyAdjacentTileIndex = getRandomInt(tile->adjacency.indirectlyAdjacentTileIndicesCount);
   long index = tile->adjacency.indirectlyAdjacentTileIndices[indirectlyAdjacentTileIndex];
   return geometry->tiles + index;

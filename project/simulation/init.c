@@ -10,10 +10,10 @@ void initializeTile(
     tile->historicalData[0].foxesList = initList(sizeof(Fox), 0);
 
     if(!tile->isWaterTile) {
-      for(long l = 0; l < 13; l++) {
+      for(long l = 0; l < 40; l++) {
         birthRabbit(tile, 0);
       }
-      for(long l = 0; l < 7; l++) {
+      for(long l = 0; l < 40; l++) {
         birthFox(tile, 0);
       }
         

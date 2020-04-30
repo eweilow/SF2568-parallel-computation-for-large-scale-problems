@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <mpi.h>
 
-#define TIMESTEPS 5
+#define TIMESTEPS 100
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0
 #define DEBUG_IDS 0
+#define DEBUG_MPI_TYPES 0
 #define DEBUG_GEOMETRY 0
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 0
@@ -186,6 +188,7 @@ int main(int argc, char **argv)
   printf("\n ***** Killing MPI ***** \n");
   murderMPI();
 
+  printf("\n ***** Saving tiles ***** \n");
   char fileName[50];
   sprintf(fileName, "./data_p%ld.bin", rank);
   FILE *fp = fopen(fileName, "w");

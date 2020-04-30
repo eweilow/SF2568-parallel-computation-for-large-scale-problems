@@ -53,6 +53,27 @@ void generateAdjacencyMap(
   }
 }
 
+
+long getProcessIndex(
+  long px,
+  long py,
+  long processesWide,
+  long processesHigh
+) {
+  return px * processesHigh + py;
+}
+
+void getProcessLocation(
+  long process,
+  long processesWide,
+  long processesHigh,
+  long* px,
+  long* py
+) {
+  *px = process / processesHigh;
+  *py = process % processesHigh;
+}
+
 // generate the island
 TileGeometry generateIsland(
   long tilesWide, 
@@ -124,7 +145,7 @@ TileGeometry generateIsland(
       long px = (long)floor((x - tileSize/2) / dpx);
       long py = (long)floor((y - tileSize/2) / dpy);
 
-      long process = px * processesHigh + py;
+      long process = getProcessIndex(px, py, processesWide, processesHigh);
 
       u_int64_t tileId = (u_int64_t)(i*tilesHigh + j);
       // printf("%llu: %lf %lf: %ld %ld = %ld\n", tileIndex, x, y, px, py, process);

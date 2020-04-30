@@ -13,6 +13,7 @@
 #define DEBUG_GEOMETRY 0
 #define DEBUG_INITIAL_BIRTH 0 // Print debug output in birthRabbit/birthFox in timestep 0
 #define DEBUG_SIMULATION 0
+#define DEBUG_PROCESS_ADJACENCY 0
 #define DEBUG_SIMULATION_DATA 0
 #define DEBUG_IPC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
@@ -39,6 +40,7 @@
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
+#include "./geometry/adjacency.c"
 
 #if TEST_LIST
 
@@ -96,6 +98,13 @@ int main(int argc, char **argv)
 {
   spawnMPI();
 
+  long processesWide = 2;
+  long processesHigh = 2;
+  long N = processesWide * processesHigh;
+
+  List *sendRabbitsLists = (List*) malloc(N * sizeof(List));
+  List *sendFoxesList = (List*) malloc(N * sizeof(List));
+
   #if DEBUG_IDS
     u_int64_t id = getNextId((u_int64_t)1);
     debugBinary(id, sizeof(u_int64_t)*8);
@@ -104,31 +113,42 @@ int main(int argc, char **argv)
 
   long rank = 0;
 
-  srand(time(0)); // Deterministic random numbers on all processes
+  ProcessAdjacency processAdjacency = getAdjacency(rank, processesWide, processesHigh);
+  for(long n = 0; n < ADJACENT_PROCESSES; n++) {
+    long index = processAdjacency.list[n];
+    if(index >= 0) {
+      sendRabbitsLists[index] = initList(sizeof(RabbitMigration), 0);
+      sendFoxesList[index] = initList(sizeof(FoxMigration), 0);
+    }
+  }
+
+  srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(5, 5, 0, 0.1, 1, 1, rank);
+  TileGeometry geometry = generateIsland(5, 5, 0, 0.1, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
 
-  srand(time(0) + rank); 
+  srand(rank); //time(0) + rank); 
 
   for(long n = 0; n < geometry.tileCount; n++) {
     initializeTile(geometry.tiles + n, TIMESTEPS);
   }
   
-  debugTiles(&geometry, 0);
+  // debugTiles(&geometry, 0);
 
   for(long ts = 1; ts < TIMESTEPS; ts++) {
     for(long n = 0; n < geometry.tileCount; n++) {
       startDataOfNewDay(geometry.tiles + n, ts);
     }
+    printf("Simulating day %ld\n", ts);
     simulateDay(&geometry, ts);
-    applyMigrations(&geometry, ts);
+    printf("Applying migrations for day %ld\n", ts);
+    applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
   }
-  debugTiles(&geometry, TIMESTEPS - 1);
+  // debugTiles(&geometry, TIMESTEPS - 1);
 
   printf("\n ***** Run sucessful ***** \n");
 

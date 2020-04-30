@@ -66,3 +66,22 @@ typedef struct {
   long ownTileCount;
   long* ownTileIndices;
 } TileGeometry;
+
+#define ADJACENT_PROCESSES 8
+
+typedef struct {
+  long col;
+  long row;
+
+  long upLeft;
+  long up;
+  long upRight;
+  long left;
+  long current;
+  long right;
+  long downLeft;
+  long down;
+  long downRight;
+
+  long list[ADJACENT_PROCESSES];
+} ProcessAdjacency;

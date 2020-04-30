@@ -1,12 +1,23 @@
 void vegetationGrowth(Tile* tile, int currentTimeStep) {
-  double vegetationStart = tile->historicalData[currentTimeStep - 1].vegetation;
+  double vegetationStart = getVegetationLevel(tile, currentTimeStep - 1);
   long rabbitCountStart = (long) getRabbitCount(tile, currentTimeStep - 1);
   double vegetationEnd = vegetationAtEndOfDayRule(vegetationStart, rabbitCountStart);
   tile->historicalData[currentTimeStep].vegetation = vegetationEnd;
 }
 
+void rabbitBreeding(Tile* tile, long currentTimeStep){
+  long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
+  long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
+  long nBirths = rabbitLitterSizeRule(vegetationLevel, nRabbitsAtStartOfDay);
+  for (int i=0; i<nBirths;i++)
+    birthRabbit(tile,currentTimeStep);
+}
+
 void tileLocalStartOfDayUpdates(Tile* tile, long currentTimeStep) {
   startDataOfNewDay(tile, currentTimeStep);
+  if (isRabbitBirthingDay(currentTimeStep)) {
+    rabbitBreeding(tile, currentTimeStep);
+  }
 }
 
 void tileLocalEndOfDayUpdates(Tile* tile, long currentTimeStep) {

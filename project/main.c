@@ -132,16 +132,18 @@ int main(int argc, char **argv)
   #endif
 
   srand(rank); //time(0) + rank); 
-
-  for(long n = 0; n < geometry.tileCount; n++) {
-    initializeTile(geometry.tiles + n, TIMESTEPS);
+  
+  for(long n = 0; n < geometry.ownTileCount; n++) {
+    long i = geometry.ownTileIndices[n];
+    initializeTile(geometry.tiles + i, TIMESTEPS);
   }
   
   // debugTiles(&geometry, 0);
 
   for(long ts = 1; ts < TIMESTEPS; ts++) {
-    for(long n = 0; n < geometry.tileCount; n++) {
-      startDataOfNewDay(geometry.tiles + n, ts);
+    for(long n = 0; n < geometry.ownTileCount; n++) {
+      long i = geometry.ownTileIndices[n];
+      startDataOfNewDay(geometry.tiles + i, ts);
     }
     printf("Simulating day %ld\n", ts);
     simulateDay(&geometry, ts);
@@ -174,8 +176,11 @@ int main(int argc, char **argv)
   printf("\n ***** Killing MPI ***** \n");
   murderMPI();
 
-  FILE *fp = fopen("./data.bin", "w");
+  char fileName[50];
+  sprintf(fileName, "./data_p%ld.bin", rank);
+  FILE *fp = fopen(fileName, "w");
 
+  fwrite(&rank, sizeof(long), 1, fp);
   fwrite(&geometry.tileCount, sizeof(long), 1, fp);
   fwrite(&geometry.tileSize, sizeof(double), 1, fp);
 

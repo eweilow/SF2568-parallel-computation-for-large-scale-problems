@@ -187,6 +187,7 @@ TileGeometry generateIsland(
       geometry.ownTileIndices[ptr++] = n;
     }
   }
+  geometry.ownTileCount = ptr;
 
   return geometry;
 }

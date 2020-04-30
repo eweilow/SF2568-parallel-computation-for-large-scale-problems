@@ -47,6 +47,9 @@ void simulateDay(
     while(true) {
       Tile* randTileFrom = getRandomTile(geometry);
       Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
+      if(randTileTo == NULL) {
+        break;
+      }
       List* rabbitsList = getRabbits(randTileFrom, ts);
       long index = randomIndexOfList(rabbitsList);
       if(migrateRabbit(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true
@@ -59,6 +62,9 @@ void simulateDay(
     while(true) {
       Tile* randTileFrom = getRandomTile(geometry);
       Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
+      if(randTileTo == NULL) {
+        break;
+      }
       List* foxesList = getFoxes(randTileFrom, ts);
       long index = randomIndexOfList(foxesList);
       if(migrateFox(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true

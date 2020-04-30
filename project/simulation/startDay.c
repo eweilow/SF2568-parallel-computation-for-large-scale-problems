@@ -1,4 +1,8 @@
 void startDataOfNewDay(Tile* tile, int currentTimeStep) {
+  if(!tile->isOwnedByThisProcess) {
+    return;
+  }
+  
   List rabbitsList = tile->historicalData[currentTimeStep - 1].rabbitsList;
   List foxesList = tile->historicalData[currentTimeStep - 1].foxesList;
   double vegetationCount = tile->historicalData[currentTimeStep - 1].vegetation;

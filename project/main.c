@@ -155,7 +155,15 @@ int main(int argc, char **argv)
   murderMPI();
 
   FILE *fp = fopen("./data.bin", "w");
+
   fwrite(&geometry.tileCount, sizeof(long), 1, fp);
+  fwrite(&geometry.tileSize, sizeof(double), 1, fp);
+
+  long rabbitSize = sizeof(Rabbit);
+  fwrite(&rabbitSize, sizeof(long), 1, fp);
+  long foxSize = sizeof(Fox);
+  fwrite(&foxSize, sizeof(long), 1, fp);
+
   for(long n = 0; n < geometry.tileCount; n++) {
     Tile tile = geometry.tiles[n];
     fwrite(&tile.x, sizeof(double), 1, fp);
@@ -172,11 +180,13 @@ int main(int argc, char **argv)
       long rabbitsCount;
       Rabbit *rabbits;
       list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+      fwrite(&rabbitsCount, sizeof(long), 1, fp);
       fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
 
       long foxesCount;
-      Rabbit *foxes;
-      list_read(&data.rabbitsList, &foxesCount, (void**)&foxes);
+      Fox *foxes;
+      list_read(&data.foxesList, &foxesCount, (void**)&foxes);
+      fwrite(&foxesCount, sizeof(long), 1, fp);
       fwrite(foxes, sizeof(Fox), foxesCount, fp);
     }
   }

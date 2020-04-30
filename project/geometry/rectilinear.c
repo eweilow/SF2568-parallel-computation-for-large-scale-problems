@@ -83,6 +83,7 @@ TileGeometry generateIsland(
   }
 
   TileGeometry geometry;
+  geometry.tileSize = tileSize;
   geometry.tilesWide = tilesWide;
   geometry.tilesHigh = tilesHigh;
 

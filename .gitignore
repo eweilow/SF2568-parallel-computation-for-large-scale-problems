@@ -14,7 +14,7 @@ hw2/data/
 
 project/main
 
-project/data.bin
+project/*.bin
 
 
 .next

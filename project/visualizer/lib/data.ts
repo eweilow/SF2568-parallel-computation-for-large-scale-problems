@@ -27,6 +27,7 @@ export type Tile = {
 };
 
 export type Data = {
+  process: number;
   tileCount: number;
   tileSize: number;
   rabbits: Map<number, Rabbit>;
@@ -62,6 +63,7 @@ export function processData(buffer: ArrayBuffer) {
     return nextByte() === 1;
   };
 
+  const process = nextInt64();
   const tileCount = nextInt64();
   const tileSize = nextDouble();
 
@@ -69,6 +71,7 @@ export function processData(buffer: ArrayBuffer) {
   const foxSize = nextInt64();
 
   const data = {
+    process,
     tileCount,
     tileSize,
     tiles: new Map(),

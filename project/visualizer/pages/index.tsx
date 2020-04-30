@@ -204,8 +204,12 @@ function Display(props: { buffer: ArrayBuffer }) {
 
   return (
     <div>
-      Buffer length: {props.buffer.byteLength}. Tiles: {tiles.length}
-      {maxX}x{maxY}
+      Buffer length: {props.buffer.byteLength}.
+      <br />
+      Tiles: {tiles.length} ({maxX}x{maxY})
+      <br />
+      Process: {data.process}
+      <br />
       <input
         type="range"
         value={ts}
@@ -230,12 +234,26 @@ function Display(props: { buffer: ArrayBuffer }) {
             } ${maxX} ${maxY}`}
             width={800}
           >
-            {tiles.map((tile) => (
-              <TileDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
-            ))}
-            {tiles.map((tile) => (
-              <TreeDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
-            ))}
+            {tiles.map(
+              (tile) =>
+                tile.isOwnedByThisProcess && (
+                  <TileDisplay
+                    key={tile.id}
+                    tile={tile}
+                    tileSize={data.tileSize}
+                  />
+                )
+            )}
+            {tiles.map(
+              (tile) =>
+                tile.isOwnedByThisProcess && (
+                  <TreeDisplay
+                    key={tile.id}
+                    tile={tile}
+                    tileSize={data.tileSize}
+                  />
+                )
+            )}
             {Array.from(data.rabbits.values()).map((rabbit) => (
               <AnimalDisplay
                 type="rabbit"

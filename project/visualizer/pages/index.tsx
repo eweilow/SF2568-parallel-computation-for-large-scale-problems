@@ -7,7 +7,7 @@ import {
   useContext,
   createContext,
 } from "react";
-import { processData, Tile } from "../lib/data";
+import { processData, Tile, AnimalLocation, Animal } from "../lib/data";
 
 function BufferInput(props: { onBufferChange: (buffer: ArrayBuffer) => void }) {
   const onChange = useCallback(
@@ -25,7 +25,13 @@ function BufferInput(props: { onBufferChange: (buffer: ArrayBuffer) => void }) {
   return <input type="file" onChange={onChange} />;
 }
 
-function Tree(props: { x: number; y: number; rotate: number; size: number }) {
+function Tree(props: {
+  isBush: boolean;
+  x: number;
+  y: number;
+  rotate: number;
+  size: number;
+}) {
   return (
     <g
       transform={`translate(${props.x + props.size / 2} ${
@@ -37,7 +43,7 @@ function Tree(props: { x: number; y: number; rotate: number; size: number }) {
         y={-props.size / 2}
         width={props.size}
         height={props.size}
-        href="https://opengameart.org/sites/default/files/styles/medium/public/_tree_02_prev_0.png"
+        href={props.isBush ? "/art/bush.png" : "/art/tree.png"}
       />
     </g>
   );
@@ -80,12 +86,13 @@ function Trees(props: {
           const px = (rng() * 2 - 1) * 0.25;
           const py = (rng() * 2 - 1) * 0.25;
           const x = (px / n + i / n) * props.tileSize;
-          const y = (-0.05 + py / n + j / n) * props.tileSize;
+          const y = (0 + py / n + (0.9 * j) / n) * props.tileSize;
           trees.push(
             <Tree
               x={props.tileX + x + (baseSize - size) / 2}
               y={props.tileY + y + (baseSize - size) / 2}
               rotate={rng() * 4 - 2}
+              isBush={rng() < 0.2}
               size={size}
               key={key}
             />
@@ -118,12 +125,51 @@ function TreeDisplay({ tile, tileSize }: { tileSize: number; tile: Tile }) {
   );
 }
 
+function AnimalDisplay(props: {
+  type: "fox" | "rabbit";
+  tiles: Map<number, Tile>;
+  tileSize: number;
+  data: Animal<AnimalLocation>;
+}) {
+  const ts = useContext(TimestepContext);
+
+  const data = props.data.historicalData.get(ts);
+
+  if (data == null) {
+    return null;
+  }
+
+  const tile = props.tiles.get(data.tile)!;
+
+  const x = tile.x - props.tileSize / 2;
+  const y = tile.y - props.tileSize / 2;
+
+  const rng = useRNG(x + y * props.data.id);
+
+  const offsetX = 0.1 + 0.8 * props.tileSize * rng();
+  const offsetY = 0.1 + 0.8 * props.tileSize * rng();
+
+  return (
+    <g
+      transform={`translate(${x + offsetX} ${y + offsetY})`}
+      style={{
+        transition: "transform 200ms",
+      }}
+    >
+      <image
+        x={0}
+        y={0}
+        width={props.tileSize / 12}
+        href={"/art/" + props.type + ".png"}
+      />
+    </g>
+  );
+}
+
 function TileDisplay({ tile, tileSize }: { tileSize: number; tile: Tile }) {
   const x = tile.x - tileSize / 2;
   const y = tile.y - tileSize / 2;
 
-  const ts = useContext(TimestepContext);
-  const growth = useContext(GrowthFactorContext);
   return (
     <g>
       <image
@@ -131,11 +177,7 @@ function TileDisplay({ tile, tileSize }: { tileSize: number; tile: Tile }) {
         y={y}
         width={tileSize}
         height={tileSize}
-        href={
-          tile.isWaterTile
-            ? "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcSEampVTPTNriTpc2GYhFdkLZt9qU4wodwrt5UWMPa3DWD8v4V1&usqp=CAU"
-            : "https://i.pinimg.com/originals/07/c2/b8/07c2b8bcad9fb6a6efb8d3c62e5f3080.jpg"
-        }
+        href={tile.isWaterTile ? "/art/water.png" : "/art/grass.png"}
       />
     </g>
   );
@@ -146,22 +188,23 @@ function Display(props: { buffer: ArrayBuffer }) {
     return processData(props.buffer);
   }, [props.buffer]);
 
+  const tiles = useMemo(() => Array.from(data.tiles.values()), [data.tiles]);
   const maxX = useMemo(() => {
-    return Math.max(...data.tiles.map((el) => el.x));
-  }, [data]);
+    return Math.max(...tiles.map((el) => el.x));
+  }, [tiles]);
   const maxY = useMemo(() => {
-    return Math.max(0, ...data.tiles.map((el) => el.x));
-  }, [data]);
+    return Math.max(0, ...tiles.map((el) => el.x));
+  }, [tiles]);
   const minDataCount = useMemo(() => {
-    return Math.max(0, ...data.tiles.map((el) => el.historicalDataCount));
-  }, [data]);
+    return Math.max(0, ...tiles.map((el) => el.historicalDataCount));
+  }, [tiles]);
 
   const [ts, setTs] = useState<number>(0);
   const [growth, setGrowth] = useState<number>(1);
 
   return (
     <div>
-      Buffer length: {props.buffer.byteLength}. Tiles: {data.tiles.length}
+      Buffer length: {props.buffer.byteLength}. Tiles: {tiles.length}
       {maxX}x{maxY}
       <input
         type="range"
@@ -187,11 +230,29 @@ function Display(props: { buffer: ArrayBuffer }) {
             } ${maxX} ${maxY}`}
             width={800}
           >
-            {data.tiles.map((tile) => (
+            {tiles.map((tile) => (
               <TileDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
             ))}
-            {data.tiles.map((tile) => (
+            {tiles.map((tile) => (
               <TreeDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
+            ))}
+            {Array.from(data.rabbits.values()).map((rabbit) => (
+              <AnimalDisplay
+                type="rabbit"
+                tileSize={data.tileSize}
+                tiles={data.tiles}
+                data={rabbit}
+                key={rabbit.id}
+              />
+            ))}
+            {Array.from(data.foxes.values()).map((fox) => (
+              <AnimalDisplay
+                type="fox"
+                tileSize={data.tileSize}
+                tiles={data.tiles}
+                data={fox}
+                key={fox.id}
+              />
             ))}
           </svg>
         </GrowthFactorContext.Provider>

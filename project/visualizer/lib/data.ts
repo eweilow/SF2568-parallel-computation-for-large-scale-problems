@@ -1,21 +1,20 @@
-export type Rabbit = {
-  birthDay: number;
-  id: number;
-};
+export interface AnimalLocation {
+  tile: number;
+}
 
-export type Fox = {
+export interface Animal<T> {
   birthDay: number;
   id: number;
-  hunger: number;
-};
+  historicalData: Map<number, T>;
+}
+
+export interface Rabbit extends Animal<AnimalLocation> {}
+export interface Fox extends Animal<AnimalLocation & { hunger: number }> {}
 
 export type TileData = {
   vegetation: number;
-  rabbitsCount: number;
-  rabbits: Rabbit[];
-  foxesCount: number;
-  foxes: Fox[];
 };
+
 export type Tile = {
   x: number;
   y: number;
@@ -28,11 +27,11 @@ export type Tile = {
 };
 
 export type Data = {
-  rabbitSize: number;
-  foxSize: number;
   tileCount: number;
   tileSize: number;
-  tiles: Tile[];
+  rabbits: Map<number, Rabbit>;
+  foxes: Map<number, Fox>;
+  tiles: Map<number, Tile>;
 };
 
 export function processData(buffer: ArrayBuffer) {
@@ -70,11 +69,11 @@ export function processData(buffer: ArrayBuffer) {
   const foxSize = nextInt64();
 
   const data = {
-    rabbitSize,
-    foxSize,
     tileCount,
     tileSize,
-    tiles: [],
+    tiles: new Map(),
+    foxes: new Map(),
+    rabbits: new Map(),
   } as Data;
 
   for (let i = 0; i < tileCount; i++) {
@@ -108,36 +107,51 @@ export function processData(buffer: ArrayBuffer) {
         foxes: [],
       } as TileData;
 
-      tileData.rabbitsCount = nextInt64();
+      const rabbitsCount = nextInt64();
       let baseRabbitsOffset = offset;
-      for (let k = 0; k < tileData.rabbitsCount; k++) {
+      for (let k = 0; k < rabbitsCount; k++) {
         offset = baseRabbitsOffset + k * rabbitSize;
 
         const rabbit = {
           birthDay: nextInt64(),
           id: nextUInt64(),
+          historicalData: new Map(),
         } as Rabbit;
-        tileData.rabbits.push(rabbit);
+
+        if (!data.rabbits.has(rabbit.id)) {
+          data.rabbits.set(rabbit.id, rabbit);
+        }
+        data.rabbits.get(rabbit.id)?.historicalData.set(j, { tile: tile.id });
       }
-      offset = baseRabbitsOffset + tileData.rabbitsCount * rabbitSize;
-      tileData.foxesCount = nextInt64();
+      offset = baseRabbitsOffset + rabbitsCount * rabbitSize;
+
+      const foxesCount = nextInt64();
 
       let baseFoxesOffset = offset;
-      for (let k = 0; k < tileData.foxesCount; k++) {
+      for (let k = 0; k < foxesCount; k++) {
         offset = baseFoxesOffset + k * foxSize;
 
         const fox = {
           birthDay: nextInt64(),
           id: nextUInt64(),
-          hunger: nextDouble(),
+          historicalData: new Map(),
         } as Fox;
-        tileData.foxes.push(fox);
+        const hunger = nextDouble();
+
+        if (!data.foxes.has(fox.id)) {
+          data.foxes.set(fox.id, fox);
+        }
+        data.foxes
+          .get(fox.id)
+          ?.historicalData.set(j, { tile: tile.id, hunger });
       }
-      offset = baseFoxesOffset + tileData.foxesCount * foxSize;
+      offset = baseFoxesOffset + foxesCount * foxSize;
 
       tile.historicalDatas.push(tileData);
     }
-    data.tiles.push(tile);
+    data.tiles.set(tile.id, tile);
   }
+
+  console.log(data.foxes, data.rabbits);
   return data;
 }

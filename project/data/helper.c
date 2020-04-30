@@ -64,6 +64,13 @@ List* getFoxes(
   TileData* data = getTileData(tile, timestep);
   return &data->foxesList;
 }
+long getFoxCount(Tile* tile, long timestep){
+  List* foxes = getFoxes(tile, timestep);
+  size_t* count = (size_t*) -1;
+  list_count(foxes, count);
+  long count_long = (long) count;
+  return count_long;
+}
 
 double getVegetationLevel(Tile* tile,
 long timestep){

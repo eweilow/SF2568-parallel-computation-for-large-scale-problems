@@ -8,16 +8,29 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
 void rabbitBreeding(Tile* tile, long currentTimeStep){
   long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
   long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
-  long nBirths = rabbitLitterSizeRule(vegetationLevel, nRabbitsAtStartOfDay);
+  long litterSize = rabbitLitterSizeRule(vegetationLevel, nRabbitsAtStartOfDay);
+  long nBirths = nRabbitsAtStartOfDay/2 * litterSize;
   for (int i=0; i<nBirths;i++)
     birthRabbit(tile,currentTimeStep);
 }
 
+void foxBreeding(Tile* tile, long currentTimeStep){
+  long nFoxesAtStartOfDay = getFoxCount(tile, currentTimeStep);
+  long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
+  long litterSize = foxLitterSizeRule(nFoxesAtStartOfDay, nRabbitsAtStartOfDay);
+  long nBirths = nFoxesAtStartOfDay/2 * litterSize;
+  for (int i=0; i<nBirths;i++)
+    birthFox(tile,currentTimeStep);
+}
+
 void tileLocalStartOfDayUpdates(Tile* tile, long currentTimeStep) {
   startDataOfNewDay(tile, currentTimeStep);
-  if (isRabbitBirthingDay(currentTimeStep)) {
+  if (isRabbitBirthingDay(currentTimeStep))
     rabbitBreeding(tile, currentTimeStep);
-  }
+
+  if (isFoxBirthingDay(currentTimeStep))
+    foxBreeding(tile, currentTimeStep);
+
 }
 
 void tileLocalEndOfDayUpdates(Tile* tile, long currentTimeStep) {

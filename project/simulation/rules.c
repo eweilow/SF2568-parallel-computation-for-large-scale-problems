@@ -66,7 +66,7 @@ bool isFoxBirthingDay(long timestep) {
   return timestep % (28*6) == 0;
 }
 
-long foxesLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
+long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
   if (nFoxesAtStartOfDay < 2)
     return 0;
 

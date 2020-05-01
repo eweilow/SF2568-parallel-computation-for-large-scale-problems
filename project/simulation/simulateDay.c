@@ -1,74 +1,39 @@
 void simulateRabbitMigrations(
-  Tile* tile, // The current tile
-  long immediatelyAdjacentTileCount,
-  Tile* immediatelyAdjacentTiles,
-  long currentTimeStep)
+  TileGeometry *geometry,
+  Tile* tile,
+  long ts)
 {
-  long draw;
-  long index;
-  long nRabbits = getRabbitCount(tile, currentTimeStep);
-  long numberOfRabbitsToMigrate = numberOfRabbitsToMigrateAtEndOfDayRule(nRabbits);
-  long remainingNumberOfRabbitsToMigrate = numberOfRabbitsToMigrate;
-  // replace with drawing rabbit structs with indexes from rabbitsToMigrate from tile
-  for(long i=0; i<numberOfRabbitsToMigrate; i++) {
-    draw = getRandomInt(immediatelyAdjacentTileCount);
-    Tile* drawnTile = &immediatelyAdjacentTiles[draw];
-    index = getRandomInt(remainingNumberOfRabbitsToMigrate);
-    migrateRabbit(tile, drawnTile, index, currentTimeStep);
-    remainingNumberOfRabbitsToMigrate -=1;
+  printf("migrateRabbits\n");
+  // remove from this tile and add to random tiles 1 or 2 steps away
+  long nRabbits = getRabbitCount(tile, ts);
+  for(long i=0; i < nRabbits; i++) {
+    Tile* nextTile = getRandomRabbitTile(geometry, tile);
+    migrateRabbit(tile, nextTile, i, ts);
   }
 }
 
 void simulateFoxMigrations(
-  Tile* tile, // The current tile
-  long immediatelyAdjacentTileCount,
-  Tile* immediatelyAdjacentTiles,
-  long adjacentToImmediatelyAdjacentTileCount,
-  Tile* adjacentToImmediatelyAdjacentTiles,
-  long currentTimeStep)
+  TileGeometry *geometry,
+  Tile* tile,
+  long ts)
 {
   printf("migrateFoxes\n");
   // remove from this tile and add to random tiles 1 or 2 steps away
-  long draw;
-  long index;
-  long nFoxes = getFoxCount(tile, currentTimeStep);
-  for(long i=0; i<nFoxes; i++) {
-    draw = getRandomInt(1 + immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
-    index = i;
-    if (draw == immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount) {
-      // Do nothing (fox stays in tile)
-    } else if (draw < immediatelyAdjacentTileCount) {
-      Tile* drawnTile = &immediatelyAdjacentTiles[draw];
-      migrateFox(tile, drawnTile, index, currentTimeStep);
-      i--; // List size decreased?????
-    } else {
-      draw = draw - immediatelyAdjacentTileCount;
-      Tile* drawnTile = &adjacentToImmediatelyAdjacentTiles[draw];
-      migrateFox(tile, drawnTile, index, currentTimeStep);
-      i--; // List size decreased?????
-    }
+  long nFoxes = getFoxCount(tile, ts);
+  for(long i=0; i < nFoxes; i++) {
+    Tile* nextTile = getRandomFoxTile(geometry, tile);
+    migrateFox(tile, nextTile, i, ts);
   }
 }
 
 void simulateMigrations(
-  Tile* tile, // The current tile
-  long immediatelyAdjacentTileCount,
-  Tile* immediatelyAdjacentTiles,
-  long adjacentToImmediatelyAdjacentTileCount,
-  Tile* adjacentToImmediatelyAdjacentTiles,
-  long currentTimeStep)
+  TileGeometry *geometry,
+  Tile* tile, 
+  long ts
+)
 {
-  simulateRabbitMigrations(tile,
-    immediatelyAdjacentTileCount,
-    immediatelyAdjacentTiles,
-    currentTimeStep);
-
-  simulateFoxMigrations(tile,
-    immediatelyAdjacentTileCount,
-    immediatelyAdjacentTiles,
-    adjacentToImmediatelyAdjacentTileCount,
-    adjacentToImmediatelyAdjacentTiles,
-    currentTimeStep);
+  simulateRabbitMigrations(geometry, tile, ts);
+  simulateFoxMigrations(geometry, tile, ts);
 }
 
 
@@ -89,7 +54,11 @@ void simulateDay(
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
-    // Migrations
+    simulateMigrations(
+      geometry, 
+      tileToUpdate,
+      ts
+    );
   }
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];

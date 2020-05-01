@@ -115,9 +115,9 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
 
 double foxHuntingSuccessChanceRule(double vegetationLevel, long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay) {
   if (nRabbitsAtStartOfDay < nFoxesAtStartOfDay || vegetationLevel >= 0.6)
-    return 2/7;
+    return (double) 2.0/7.0;
 
-  return 4/7;
+  return (double) 4.0/7.0;
 }
 
 double foxFailedHuntingRiskDeathChanceRule() {

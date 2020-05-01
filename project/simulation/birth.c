@@ -10,7 +10,7 @@ void birthRabbit(Tile* inTile, long timestep) {
 
   // Add the rabbit to the tile list of rabbits
   list_insert(inList, &rabbit);
-  
+
   #if DEBUG_SIMULATION
     if((timestep == 0 && DEBUG_INITIAL_BIRTH) || timestep > 0) {
       printf("[SIM.%ld] BIRTH rabbit.%d IN tile.%ld\n", timestep, rabbit.id, inTile->id);
@@ -27,11 +27,11 @@ void birthRabbit(Tile* inTile, long timestep) {
 void birthFox(Tile* inTile, long timestep) {
   List *inList = getFoxes(inTile, timestep);
 
-  Fox fox; 
+  Fox fox;
 
   fox.birthDay = timestep;
   fox.id = nextId++;
-  fox.hunger = 0.0;
+  fox.hunger = 0.7;
   // Add the fox to the tile list of foxes
   list_insert(inList, &fox);
 

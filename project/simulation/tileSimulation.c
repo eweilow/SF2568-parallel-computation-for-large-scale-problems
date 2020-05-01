@@ -77,8 +77,9 @@ void foxNaturalDeaths(Tile* tile, long currentTimeStep){
   }
 }
 
-bool foxHunt(Fox* fox, long foxHuntingSuccessChance){
-  double draw = rand();
+bool foxHunt(Fox* fox, double foxHuntingSuccessChance){
+  double draw = drawU01();
+  //printf("hunt draw: %f\n", draw);
   bool success = draw < foxHuntingSuccessChance;
   if (success) {
     fox->hunger -= 0.35;
@@ -96,18 +97,22 @@ void foxHunting(Tile* tile, long currentTimeStep){
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
   for (int i=0; i<foxesCount; i++) {
-    if ((foxes + i)->hunger < 0.35) // Fox already full
+    if ((foxes + i)->hunger < 0.35) { // Fox already full
+      //printf("Already full: %d \n", i);
       continue;
+    }
 
-    long foxHuntingSuccessChance = foxHuntingSuccessChanceRule(vegetationLevel, foxesCount, nRabbits);
+    double foxHuntingSuccessChance = foxHuntingSuccessChanceRule(vegetationLevel, foxesCount, nRabbits);
+    //printf("foxHuntingSuccessChance: %f \n", foxHuntingSuccessChance);
     bool success = foxHunt(foxes + i, foxHuntingSuccessChance);
     if (success) {
+      //printf("succesful hunt! %d\n", success);
       long rabbitToKill = getRandomInt(nRabbits);
       killRabbit(tile, rabbitToKill, currentTimeStep);
       nRabbits--;
     }
     else if (foxesRiskStarvationRule(foxesCount, nRabbits)){
-      long draw = rand();
+      long draw = drawU01();
       if (draw < foxFailedHuntingRiskDeathChanceRule()){
         killFox(tile, i, currentTimeStep);
         i--; // list size is reduced??
@@ -139,40 +144,13 @@ void tileLocalStartOfDayUpdates(Tile* tile, long currentTimeStep) {
 
 }
 
-void tileLocalEndOfDayUpdates(Tile* tile, long currentTimeStep) {
-  vegetationGrowth(tile, currentTimeStep);
+void tileLocalMiddleOfDayUpdates(Tile* tile, long currentTimeStep) {
+  rabbitNaturalDeaths(tile, currentTimeStep);
+  foxNaturalDeaths(tile, currentTimeStep);
+  foxHunting(tile, currentTimeStep);
+  killStarvedFoxes(tile, currentTimeStep);
 }
 
-void updateTile(
-  Tile* tile, // The current tile
-  long immediatelyAdjacentTileCount,
-  Tile* immediatelyAdjacentTiles,
-  long adjacentToImmediatelyAdjacentTileCount,
-  Tile* adjacentToImmediatelyAdjacentTiles,
-  long currentTimeStep
-) {
-  // Tile local updates start of day
-  tileLocalStartOfDayUpdates(tile, currentTimeStep);
-
-  // Tile communication stuff
-  /*migrateRabbits(
-    tile,
-    immediatelyAdjacentTileCount,
-    immediatelyAdjacentTiles,
-    adjacentToImmediatelyAdjacentTileCount,
-    adjacentToImmediatelyAdjacentTiles,
-    currentTimeStep
-  );
-
-  migrateFoxes(
-    tile,
-    immediatelyAdjacentTileCount,
-    immediatelyAdjacentTiles,
-    adjacentToImmediatelyAdjacentTileCount,
-    adjacentToImmediatelyAdjacentTiles,
-    currentTimeStep
-  );*/
-
-  // Tile local updates
-    tileLocalEndOfDayUpdates(tile, currentTimeStep);
+void tileLocalEndOfDayUpdates(Tile* tile, long currentTimeStep) {
+  vegetationGrowth(tile, currentTimeStep);
 }

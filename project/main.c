@@ -31,9 +31,9 @@
 #include "./simulation/death.c"
 #include "./simulation/init.c"
 #include "./simulation/startDay.c"
-#include "./simulation/simulateDay.c"
 #include "./simulation/rules.c"
 #include "./simulation/tileSimulation.c"
+#include "./simulation/simulateDay.c"
 #include "./simulation/debugTileSimulation.c"
 
 #include "./geometry/rectilinear.c"

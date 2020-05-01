@@ -6,8 +6,8 @@ void initializeTile(
     tile->historicalDataCount = timesteps;
     tile->historicalData = (TileData*) calloc(timesteps, sizeof(TileData));
 
-    tile->historicalData[0].rabbitsList = initList(sizeof(Rabbit), 0);
-    tile->historicalData[0].foxesList = initList(sizeof(Fox), 0);
+    tile->historicalData[0].rabbitsList = initList(sizeof(Rabbit), 40);
+    tile->historicalData[0].foxesList = initList(sizeof(Fox), 40);
 
     if(!tile->isWaterTile) {
       for(long l = 0; l < 40; l++) {
@@ -19,8 +19,8 @@ void initializeTile(
         
       tile->historicalData[0].vegetation = 0.25;
     }
+    tile->rabbitMigrationsList = initList(sizeof(RabbitMigration), 100);
+    tile->foxMigrationsList = initList(sizeof(FoxMigration), 100);
   }
 
-  tile->rabbitMigrationsList = initList(sizeof(RabbitMigration), 0);
-  tile->foxMigrationsList = initList(sizeof(FoxMigration), 0);
 }

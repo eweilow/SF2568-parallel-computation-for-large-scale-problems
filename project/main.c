@@ -22,6 +22,8 @@
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
 
+#define DEBUG_CLEAR_MEMORY 0
+
 #define SAVE_DATA 0
 
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -137,8 +139,8 @@ int main(int argc, char **argv)
   for(long n = 0; n < ADJACENT_PROCESSES; n++) {
     long index = processAdjacency.list[n];
     if(index >= 0) {
-      sendRabbitsLists[index] = initList(sizeof(RabbitMigration), 0);
-      sendFoxesList[index] = initList(sizeof(FoxMigration), 0);
+      sendRabbitsLists[index] = initList(sizeof(RabbitMigration), 1000);
+      sendFoxesList[index] = initList(sizeof(FoxMigration), 1000);
     }
   }
 
@@ -258,6 +260,43 @@ int main(int argc, char **argv)
     }
     fclose(fp);
     printf("\n ***** Data saved ***** \n");
+  #endif
+
+  #if DEBUG_CLEAR_MEMORY
+  for(long n = 0; n < geometry.tileCount; n++) {
+    Tile tile = geometry.tiles[n];
+    if(tile.isOwnedByThisProcess) {
+      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+        list_clear(&tile.historicalData[ts].rabbitsList);
+        list_clear(&tile.historicalData[ts].foxesList);
+      }
+
+      free(tile.historicalData);
+
+      list_clear(&tile.rabbitMigrationsList);
+      list_clear(&tile.foxMigrationsList);
+      
+      if(tile.adjacency.immediatelyAdjacentTileIndices != NULL) {
+        free(tile.adjacency.immediatelyAdjacentTileIndices);
+      }
+      if(tile.adjacency.indirectlyAdjacentTileIndices != NULL) {
+        free(tile.adjacency.indirectlyAdjacentTileIndices);
+      }
+    }
+  }
+  for(long n = 0; n < ADJACENT_PROCESSES; n++) {
+    long index = processAdjacency.list[n];
+    if(index >= 0) {
+      list_clear(&sendRabbitsLists[index]);
+      list_clear(&sendFoxesList[index]);
+    }
+  }
+  if(geometry.tiles != NULL) {
+    free(geometry.tiles);
+  }
+  if(geometry.ownTileIndices != NULL) {
+    free(geometry.ownTileIndices);
+  }
   #endif
 
   return 0;

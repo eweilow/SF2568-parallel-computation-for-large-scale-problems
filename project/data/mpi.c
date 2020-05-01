@@ -125,6 +125,7 @@ bool spawnMPI(int argc, char **argv, long *rank, long *processCount, long proces
   if(*processCount < neededProcesses) {
     if(rank == 0) {
       printf("Exiting: not enough processes. Need %ld x %ld = %ld, but have %ld.", processesWide, processesHigh, neededProcesses, processCount);
+      exit(1);
     }
     return false;
     // exit(1);

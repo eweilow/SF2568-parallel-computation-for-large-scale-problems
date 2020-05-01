@@ -104,7 +104,9 @@ void sendRabbits(
 #endif
 
   MPI_Send(&len, 1, MPI_LONG, toProcess, 0, MPI_COMM_WORLD);
-  MPI_Send(migrations, len, RABBIT_MIGRATION_MPI_TYPE, toProcess, 0, MPI_COMM_WORLD);
+  if(len > 0) {
+    MPI_Send(migrations, len, RABBIT_MIGRATION_MPI_TYPE, toProcess, 0, MPI_COMM_WORLD);
+  }
 
   list_clear(list);
 }
@@ -130,7 +132,9 @@ void sendFoxes(
 #endif
 
   MPI_Send(&len, 1, MPI_LONG, toProcess, 0, MPI_COMM_WORLD);
-  MPI_Send(migrations, len, FOX_MIGRATION_MPI_TYPE, toProcess, 0, MPI_COMM_WORLD);
+  if(len > 0) {
+    MPI_Send(migrations, len, FOX_MIGRATION_MPI_TYPE, toProcess, 0, MPI_COMM_WORLD);
+  }
 
   list_clear(list);
 }
@@ -140,22 +144,23 @@ void receiveRabbits(long* outputDataLen, void **outputDataPtr, long at, long fro
     return;
   }
 
-
-#if DEBUG_IPC
-  printf("[RECV.%ld] RECEIVING RABBITS AT %ld FROM %ld\n", at, at, from);
-#endif
-
   long len;
   MPI_Recv(&len, 1, MPI_LONG, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  RabbitMigration* data = (RabbitMigration*) malloc(sizeof(RabbitMigration) * len);
-  MPI_Recv(data, len, RABBIT_MIGRATION_MPI_TYPE, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  // MPI commands
   
-#if DEBUG_IPC
-  printf("[RECV.%ld] RECEIVED %ld RABBITS AT %ld FROM %ld\n", at, len, at, from);
-#endif
-  *outputDataLen = len;
-  *outputDataPtr = data;
+  if(len == 0) {
+    *outputDataLen = 0;
+    *outputDataPtr = NULL;
+  } else {
+    RabbitMigration* data = (RabbitMigration*) malloc(sizeof(RabbitMigration) * len);
+    MPI_Recv(data, len, RABBIT_MIGRATION_MPI_TYPE, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    // MPI commands
+    *outputDataLen = len;
+    *outputDataPtr = data;
+  }
+  
+  #if DEBUG_IPC
+    printf("[RECV.%ld] RECEIVED %ld RABBITS AT %ld FROM %ld\n", at, len, at, from);
+  #endif
 }
 
 void receiveFoxes(long* outputDataLen, void **outputDataPtr, long at, long from) {
@@ -170,15 +175,21 @@ void receiveFoxes(long* outputDataLen, void **outputDataPtr, long at, long from)
 
   long len;
   MPI_Recv(&len, 1, MPI_LONG, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  FoxMigration* data = (FoxMigration*) malloc(sizeof(FoxMigration) * len);
-  MPI_Recv(data, len, FOX_MIGRATION_MPI_TYPE, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  
+  if(len == 0) {
+    *outputDataLen = 0;
+    *outputDataPtr = NULL;
+  } else {
+    FoxMigration* data = (FoxMigration*) malloc(sizeof(FoxMigration) * len);
+    MPI_Recv(data, len, FOX_MIGRATION_MPI_TYPE, from, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
+    *outputDataLen = len;
+    *outputDataPtr = data;
+  }
 
-#if DEBUG_IPC
-  printf("[RECV.%ld] RECEIVED %ld FOXES AT %ld FROM %ld\n", at, len, at, from);
-#endif
-  *outputDataLen = len;
-  *outputDataPtr = data;
+  #if DEBUG_IPC
+    printf("[RECV.%ld] RECEIVED %ld FOXES AT %ld FROM %ld\n", at, len, at, from);
+  #endif
 }
 
 void applyReceivedRabbitMigrations(
@@ -187,6 +198,9 @@ void applyReceivedRabbitMigrations(
   long ts
 ) {
   long len = *lenPtr;
+  if(len == 0) {
+    return;
+  }
   RabbitMigration* migrations = (RabbitMigration*)(*dataPtr);
 
   for(long n = 0; n < len; n++) {
@@ -207,6 +221,9 @@ void applyReceivedFoxMigrations(
   long ts
 ) {
   long len = *lenPtr;
+  if(len == 0) {
+    return;
+  }
   FoxMigration* migrations = (FoxMigration*)(*dataPtr);
 
   for(long n = 0; n < len; n++) {
@@ -236,7 +253,7 @@ void communicate(
   long currentDataLen = 0;
   void *currentDataPtr = NULL;
 
-  MPI_Barrier(MPI_COMM_WORLD);
+// MPI_Barrier(MPI_COMM_WORLD);
   if(row % 2 == 0) {
     send(sendLists, processAdjacency.current, processAdjacency.downRight);
     recv(&currentDataLen, &currentDataPtr, processAdjacency.current, processAdjacency.downRight);
@@ -246,7 +263,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+// MPI_Barrier(MPI_COMM_WORLD);
 
   if(row % 2 == 1) {
     send(sendLists, processAdjacency.current, processAdjacency.downRight);
@@ -257,7 +274,7 @@ void communicate(
   }
   
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+ // MPI_Barrier(MPI_COMM_WORLD);
 
   if(row % 2 == 0) {
     send(sendLists, processAdjacency.current, processAdjacency.down);
@@ -268,7 +285,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   if(row % 2 == 1) {
     send(sendLists, processAdjacency.current, processAdjacency.down);
@@ -279,7 +296,7 @@ void communicate(
   }
   
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   if(row % 2 == 0) {
     send(sendLists, processAdjacency.current, processAdjacency.downLeft);
@@ -290,7 +307,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   if(row % 2 == 1) {
     send(sendLists, processAdjacency.current, processAdjacency.downLeft);
@@ -301,7 +318,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   if(col % 2 == 0) {
     send(sendLists, processAdjacency.current, processAdjacency.right);
@@ -312,7 +329,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 
   if(col % 2 == 1) {
     send(sendLists, processAdjacency.current, processAdjacency.right);
@@ -323,7 +340,7 @@ void communicate(
   }
 
   applyMigrations(geometry, &currentDataLen, &currentDataPtr, ts);
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void applyMigrations(

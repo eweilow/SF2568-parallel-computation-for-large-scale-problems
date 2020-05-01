@@ -20,6 +20,7 @@
 #define DEBUG_IPC 0
 #define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
+#define DEBUG_STEPS 0
 
 #define SAVE_DATA 0
 
@@ -102,8 +103,9 @@ void main(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  long processesWide = 4;
-  long processesHigh = 4;
+  char *endPtr;
+  long processesWide = strtol(argv[1], &endPtr, 10);
+  long processesHigh = strtol(argv[2], &endPtr, 10);
 
   long rank, N;
   bool shouldCompute = spawnMPI(argc, argv, &rank, &N, processesWide, processesHigh);
@@ -127,6 +129,9 @@ int main(int argc, char **argv)
     debugBinary(id >> 40, sizeof(u_int64_t)*8);
   #endif
 
+  clock_t initStart, initEnd, start, end; 
+  MPI_Barrier(MPI_COMM_WORLD);
+  initStart = clock(); 
 
   ProcessAdjacency processAdjacency = getAdjacency(rank, processesWide, processesHigh);
   for(long n = 0; n < ADJACENT_PROCESSES; n++) {
@@ -153,6 +158,9 @@ int main(int argc, char **argv)
     initializeTile(geometry.tiles + i, TIMESTEPS);
   }
   
+  initEnd = clock(); 
+  MPI_Barrier(MPI_COMM_WORLD);
+  start = clock();
   // debugTiles(&geometry, 0);
 
   for(long ts = 1; ts < TIMESTEPS; ts++) {
@@ -160,14 +168,30 @@ int main(int argc, char **argv)
       long i = geometry.ownTileIndices[n];
       startDataOfNewDay(geometry.tiles + i, ts);
     }
-    printf("Simulating day %ld\n", ts);
+    #if DEBUG_STEPS
+    if(rank == 0) {
+      printf("Simulating day %ld\n", ts);
+    }
+    #endif
     simulateDay(&geometry, ts);
-    printf("Applying migrations for day %ld\n", ts);
+    #if DEBUG_STEPS
+    if(rank == 0) {
+      printf("Applying migrations for day %ld\n", ts);
+    }
+    #endif
     applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
   }
+
+  end = clock();
+
+  if(rank == 0) {
+    double init_time_taken = (double)(initEnd - initStart) / (double)(CLOCKS_PER_SEC);
+    double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
+    printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf\n", processesWide, processesHigh, init_time_taken, time_taken);
+  }
+
   // debugTiles(&geometry, TIMESTEPS - 1);
 
-  printf("\n ***** Run sucessful ***** \n");
 
   // initialize initial element of historicalData
 
@@ -188,7 +212,6 @@ int main(int argc, char **argv)
 
   // store to file in each child
 
-  printf("\n ***** Killing MPI ***** \n");
   murderMPI();
 
   #if SAVE_DATA

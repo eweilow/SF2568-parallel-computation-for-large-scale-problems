@@ -28,9 +28,9 @@ List initList(
     list.memptr = NULL;
   }
 
-  if(DEBUG_LIST) {
+  #if DEBUG_LIST_ALLOC
     printf("[LIST] Allocating list. size: %ld, initial count: %ld\n", elementSize, initialAllocation);
-  }
+  #endif
 
   return list;
 }
@@ -54,11 +54,18 @@ void list_increaseSize(
   size_t newSize
 ) {
   long newSizePower2 = next_pow2(newSize);
-  if(DEBUG_LIST) {
-    printf("[LIST] Increasing size from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
+
+  if(newSizePower2 < list->currentMemorySize) {
+    #if DEBUG_LIST_ALLOC
+      printf("[LIST] Skipping size increase from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
+    #endif
+  } else {
+    #if DEBUG_LIST_ALLOC
+      printf("[LIST] Increasing size from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
+    #endif
+    list->memptr = (void*) realloc(list->memptr, newSizePower2);
+    list->currentMemorySize = newSizePower2;
   }
-  list->memptr = (void*) realloc(list->memptr, newSizePower2);
-  list->currentMemorySize = newSizePower2;
 }
 
 void list_decreaseSize(
@@ -67,12 +74,14 @@ void list_decreaseSize(
 ) {
   long newSizePower2 = newSize == 0 ? 0 : next_pow2(newSize);
   if(newSizePower2 == 1) {
-    printf("[LIST] Skipping list clear (new size too small) after moving from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
+    #if DEBUG_LIST
+      printf("[LIST] Skipping list clear (new size too small) after moving from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
+    #endif
     return;
   }
-  if(DEBUG_LIST) {
+  #if DEBUG_LIST_ALLOC
     printf("[LIST] Decreasing size from %ld elements (%ld bytes) to %ld elements (%ld bytes)\n", list->currentMemorySize/list->elementSize, list->currentMemorySize, newSizePower2 / list->elementSize, newSizePower2);
-  }
+  #endif
   list->memptr = (void*) realloc(list->memptr, newSizePower2);
   list->currentMemorySize = newSizePower2;
 }
@@ -83,9 +92,9 @@ void list_insert(
 ) {
   size_t curSize = list->currentMemorySize;
   size_t necessarySize = list_memSize(list, list->elementCount + 1);
-  if(DEBUG_LIST) {
+  #if DEBUG_LIST
     printf("[LIST] Inserting into list: curSize: %ld, necessarySize: %ld\n", curSize, necessarySize);
-  }
+  #endif
 
   if(curSize < necessarySize) {
     list_increaseSize(list, necessarySize);
@@ -93,9 +102,9 @@ void list_insert(
 
   long index = list->elementCount;
   long byteIndex = index * list->elementSize;
-  if(DEBUG_LIST) {
+  #if DEBUG_LIST
     printf("[LIST] Writing at location %ld (%ld bytes)\n", index, byteIndex);
-  }
+  #endif
   memcpy(list->memptr + byteIndex, element, list->elementSize);
   list->elementCount = list->elementCount + 1;
 }
@@ -106,15 +115,15 @@ void list_remove(
   void* deleted
 ) {
   if(index < 0) {
-    if(DEBUG_LIST) {
+    #if DEBUG_LIST
       printf("[LIST] Skipping remove: index %d < 0\n", index);
-    }
+    #endif
     return;
   }
   if(index >= list->elementCount) {
-    if(DEBUG_LIST) {
+    #if DEBUG_LIST
       printf("[LIST] Skipping remove: index %d > count (%d)\n", index, list->elementCount);
-    }
+    #endif
     return;
   }
 
@@ -127,7 +136,7 @@ void list_remove(
   long length = list->elementCount - copyFromIndex;
   long byteLength = length * list->elementSize;
 
-  if(DEBUG_LIST) {
+  #if DEBUG_LIST
     printf("[LIST] Removing element at %ld (@%ld bytes)\n", 
       copyToIndex, copyToByteIndex
     );
@@ -136,7 +145,7 @@ void list_remove(
       copyFromIndex, copyFromByteIndex,
       copyToIndex, copyToByteIndex
     );
-  }
+  #endif
   
   memcpy(deleted, list->memptr + copyToByteIndex, list->elementSize);
 
@@ -169,6 +178,11 @@ void list_read(
 void list_clear(
   List* list
 ) {
+  if(list->currentMemorySize > 0) {
+    free(list->memptr);
+    list->memptr = NULL;
+    list->currentMemorySize = 0;
+  }
   list->elementCount = 0;
 }
 

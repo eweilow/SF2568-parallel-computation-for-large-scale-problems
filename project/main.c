@@ -18,7 +18,10 @@
 #define DEBUG_PROCESS_ADJACENCY 0
 #define DEBUG_SIMULATION_DATA 0
 #define DEBUG_IPC 0
+#define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
+
+#define SAVE_DATA 0
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
@@ -188,48 +191,50 @@ int main(int argc, char **argv)
   printf("\n ***** Killing MPI ***** \n");
   murderMPI();
 
-  printf("\n ***** Saving tiles ***** \n");
-  char fileName[50];
-  sprintf(fileName, "./data_p%ld.bin", rank);
-  FILE *fp = fopen(fileName, "w");
+  #if SAVE_DATA
+    printf("\n ***** Saving tiles ***** \n");
+    char fileName[50];
+    sprintf(fileName, "./data_p%ld.bin", rank);
+    FILE *fp = fopen(fileName, "w");
 
-  fwrite(&rank, sizeof(long), 1, fp);
-  fwrite(&geometry.tileCount, sizeof(long), 1, fp);
-  fwrite(&geometry.tileSize, sizeof(double), 1, fp);
+    fwrite(&rank, sizeof(long), 1, fp);
+    fwrite(&geometry.tileCount, sizeof(long), 1, fp);
+    fwrite(&geometry.tileSize, sizeof(double), 1, fp);
 
-  long rabbitSize = sizeof(Rabbit);
-  fwrite(&rabbitSize, sizeof(long), 1, fp);
-  long foxSize = sizeof(Fox);
-  fwrite(&foxSize, sizeof(long), 1, fp);
+    long rabbitSize = sizeof(Rabbit);
+    fwrite(&rabbitSize, sizeof(long), 1, fp);
+    long foxSize = sizeof(Fox);
+    fwrite(&foxSize, sizeof(long), 1, fp);
 
-  for(long n = 0; n < geometry.tileCount; n++) {
-    Tile tile = geometry.tiles[n];
-    fwrite(&tile.x, sizeof(double), 1, fp);
-    fwrite(&tile.y, sizeof(double), 1, fp);
-    fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
-    fwrite(&tile.process, sizeof(long), 1, fp);
-    fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
-    fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
-    fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
-    for(long ts = 0; ts < tile.historicalDataCount; ts++) {
-      TileData data = tile.historicalData[ts];
-      fwrite(&data.vegetation, sizeof(double), 1, fp);
+    for(long n = 0; n < geometry.tileCount; n++) {
+      Tile tile = geometry.tiles[n];
+      fwrite(&tile.x, sizeof(float), 1, fp);
+      fwrite(&tile.y, sizeof(float), 1, fp);
+      fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
+      fwrite(&tile.process, sizeof(long), 1, fp);
+      fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
+      fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
+      fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
+      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+        TileData data = tile.historicalData[ts];
+        fwrite(&data.vegetation, sizeof(float), 1, fp);
 
-      long rabbitsCount;
-      Rabbit *rabbits;
-      list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
-      fwrite(&rabbitsCount, sizeof(long), 1, fp);
-      fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+        long rabbitsCount;
+        Rabbit *rabbits;
+        list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+        fwrite(&rabbitsCount, sizeof(long), 1, fp);
+        fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
 
-      long foxesCount;
-      Fox *foxes;
-      list_read(&data.foxesList, &foxesCount, (void**)&foxes);
-      fwrite(&foxesCount, sizeof(long), 1, fp);
-      fwrite(foxes, sizeof(Fox), foxesCount, fp);
+        long foxesCount;
+        Fox *foxes;
+        list_read(&data.foxesList, &foxesCount, (void**)&foxes);
+        fwrite(&foxesCount, sizeof(long), 1, fp);
+        fwrite(foxes, sizeof(Fox), foxesCount, fp);
+      }
     }
-  }
-  fclose(fp);
-  printf("\n ***** Data saved ***** \n");
+    fclose(fp);
+    printf("\n ***** Data saved ***** \n");
+  #endif
 
   return 0;
 }

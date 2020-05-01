@@ -9,8 +9,6 @@ void applyRabbitMigrations(
   RabbitMigration *migrations;
   list_read(migrationsList, &len, (void**)&migrations);
   for(long n = 0; n < len; n++) {
-    char rabbitId[50];
-    formatGlobalId(migrations[n].rabbit.id, rabbitId);
 
     long toTileIndex = migrations[n].toTile;
     Tile *toTile = geometry->tiles + (toTileIndex);
@@ -19,6 +17,8 @@ void applyRabbitMigrations(
 
     bool isLocalMigration = tile->process == toTile->process;
 #if DEBUG_IPC
+    char rabbitId[50];
+    formatGlobalId(migrations[n].rabbit.id, rabbitId);
     if(!isLocalMigration) {
       printf("[DATA.%ld] rabbit.%-12s moves from %+4llu to %+4llu - a migration from process %ld to %ld.\n", ts, rabbitId, tile->id, toTile->id, tile->process, toTile->process);
     } else {
@@ -45,8 +45,6 @@ void applyFoxMigrations(
   FoxMigration *migrations;
   list_read(migrationsList, &len, (void**)&migrations);
   for(long n = 0; n < len; n++) {
-    char foxId[50];
-    formatGlobalId(migrations[n].fox.id, foxId);
 
     long toTileIndex = migrations[n].toTile;
     Tile *toTile = geometry->tiles + (toTileIndex);
@@ -55,6 +53,8 @@ void applyFoxMigrations(
 
     bool isLocalMigration = tile->process == toTile->process;
 #if DEBUG_IPC
+    char foxId[50];
+    formatGlobalId(migrations[n].fox.id, foxId);
     if(!isLocalMigration) {
       printf("[DATA.%ld]    fox.%-12s moves from %+4llu to %+4llu - a migration from process %ld to %ld.\n", ts, foxId, tile->id, toTile->id, tile->process, toTile->process);
     } else {

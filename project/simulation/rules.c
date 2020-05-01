@@ -120,6 +120,10 @@ double foxHuntingSuccessChanceRule(double vegetationLevel, long nFoxesAtStartOfD
   return 4/7;
 }
 
+double foxFailedHuntingRiskDeathChanceRule() {
+  return 0.1;
+}
+
 bool foxesRiskStarvationRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
   if (nRabbitsAtStartOfDay < nFoxesAtStartOfDay)
     return true;

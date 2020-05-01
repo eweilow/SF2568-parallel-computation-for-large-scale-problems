@@ -162,7 +162,7 @@ int main(int argc, char **argv)
   #if DEBUG_TILESIMULATION
     debugTileSimulation(&geometry);
     printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
-    return;
+    return 0;
   #endif
   
   for(long n = 0; n < geometry.ownTileCount; n++) {

@@ -244,28 +244,31 @@ int main(int argc, char **argv)
 
     for(long n = 0; n < geometry.tileCount; n++) {
       Tile tile = geometry.tiles[n];
-      fwrite(&tile.x, sizeof(float), 1, fp);
-      fwrite(&tile.y, sizeof(float), 1, fp);
+      fwrite(&tile.x, sizeof(double), 1, fp);
+      fwrite(&tile.y, sizeof(double), 1, fp);
       fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
       fwrite(&tile.process, sizeof(long), 1, fp);
       fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
       fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
-      fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
-      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
-        TileData data = tile.historicalData[ts];
-        fwrite(&data.vegetation, sizeof(float), 1, fp);
+      
+      if(tile.isOwnedByThisProcess) {
+        fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
+        for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+          TileData data = tile.historicalData[ts];
+          fwrite(&data.vegetation, sizeof(double), 1, fp);
 
-        long rabbitsCount;
-        Rabbit *rabbits;
-        list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
-        fwrite(&rabbitsCount, sizeof(long), 1, fp);
-        fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+          long rabbitsCount;
+          Rabbit *rabbits;
+          list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+          fwrite(&rabbitsCount, sizeof(long), 1, fp);
+          fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
 
-        long foxesCount;
-        Fox *foxes;
-        list_read(&data.foxesList, &foxesCount, (void**)&foxes);
-        fwrite(&foxesCount, sizeof(long), 1, fp);
-        fwrite(foxes, sizeof(Fox), foxesCount, fp);
+          long foxesCount;
+          Fox *foxes;
+          list_read(&data.foxesList, &foxesCount, (void**)&foxes);
+          fwrite(&foxesCount, sizeof(long), 1, fp);
+          fwrite(foxes, sizeof(Fox), foxesCount, fp);
+        }
       }
     }
     fclose(fp);

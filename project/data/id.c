@@ -1,4 +1,3 @@
-
 u_int64_t processLocalCounter = 0;
 
 const u_int64_t baseIDLength = 24; // 2^baseIDLength baseIds are allowed

@@ -79,6 +79,8 @@ export function processData(buffer: ArrayBuffer) {
     rabbits: new Map(),
   } as Data;
 
+  console.log(data);
+
   for (let i = 0; i < tileCount; i++) {
     const x = nextDouble();
     const y = nextDouble();
@@ -88,7 +90,7 @@ export function processData(buffer: ArrayBuffer) {
     const isOwnedByThisProcess = nextBool();
     const isWaterTile = nextBool();
 
-    const historicalDataCount = nextInt64();
+    const historicalDataCount = isOwnedByThisProcess ? nextInt64() : 0;
 
     const tile = {
       x,
@@ -100,6 +102,7 @@ export function processData(buffer: ArrayBuffer) {
       historicalDataCount,
       historicalDatas: [],
     } as Tile;
+    console.log(tile);
 
     for (let j = 0; j < historicalDataCount; j++) {
       const tileData = {

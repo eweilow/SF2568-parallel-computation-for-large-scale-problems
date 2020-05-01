@@ -1,91 +1,79 @@
+void simulateRabbitMigrations(
+  TileGeometry *geometry,
+  Tile* tile,
+  long ts)
+{
+  // remove from this tile and add to random tiles 1 or 2 steps away
+  long nRabbits = getRabbitCount(tile, ts);
+  for(long i=0; i < nRabbits; i++) {
+    Tile* nextTile = getRandomRabbitTile(geometry, tile);
+    migrateRabbit(tile, nextTile, i, ts);
+  }
+}
+
+void simulateFoxMigrations(
+  TileGeometry *geometry,
+  Tile* tile,
+  long ts)
+{
+  // remove from this tile and add to random tiles 1 or 2 steps away
+  long nFoxes = getFoxCount(tile, ts);
+  for(long i=0; i < nFoxes; i++) {
+    Tile* nextTile = getRandomFoxTile(geometry, tile);
+    migrateFox(tile, nextTile, i, ts);
+  }
+}
+
+void simulateMigrations(
+  TileGeometry *geometry,
+  Tile* tile, 
+  long ts
+)
+{
+  simulateRabbitMigrations(geometry, tile, ts);
+  simulateFoxMigrations(geometry, tile, ts);
+}
+
+
+#define USE_START_OF_DAY_UPDATES 1
+#define USE_MIDDLE_OF_DAY_UPDATES 1
+#define USE_MIGRATION_UPDATES 1
+#define USE_END_OF_DAY_UPDATES 1
+
 void simulateDay(
   TileGeometry *geometry,
   long ts
 ) {
-  const long MAXITER = 10;
-
-  const long RABBIT_BIRTHS = 100;
-  const long FOX_BIRTHS = 100;
-
-  const long RABBIT_DEATHS = 100;
-  const long FOX_DEATHS = 100;
-
-  const long RABBIT_MIGRATIONS = 10;
-  const long FOX_MIGRATIONS = 10;
-
-  for(long k = 0; k < RABBIT_DEATHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      List* rabbitsList = getRabbits(randTile, ts);
-      long index = randomIndexOfList(rabbitsList);
-      if(killRabbit(randTile, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  #if USE_START_OF_DAY_UPDATES
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalStartOfDayUpdates(tileToUpdate, ts);
   }
-
-  for(long k = 0; k < FOX_DEATHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      List* foxesList = getFoxes(randTile, ts);
-      long index = randomIndexOfList(foxesList);
-      if(killFox(randTile, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  #endif 
+  #if USE_MIDDLE_OF_DAY_UPDATES
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalMiddleOfDayUpdates(tileToUpdate, ts);
   }
-  
-  for(long k = 0; k < RABBIT_BIRTHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      if(birthRabbit(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  #endif 
+  #if USE_MIGRATION_UPDATES
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    simulateMigrations(
+      geometry, 
+      tileToUpdate,
+      ts
+    );
   }
-
-  for(long k = 0; k < FOX_BIRTHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      if(birthFox(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  #endif 
+  #if USE_END_OF_DAY_UPDATES
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalEndOfDayUpdates(tileToUpdate, ts);
   }
-  
-  for(long k = 0; k < RABBIT_MIGRATIONS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTileFrom = getRandomTile(geometry);
-      Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
-      if(randTileTo == NULL) {
-        break;
-      }
-      List* rabbitsList = getRabbits(randTileFrom, ts);
-      long index = randomIndexOfList(rabbitsList);
-      if(migrateRabbit(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
-  }
-
-  for(long k = 0; k < FOX_MIGRATIONS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTileFrom = getRandomTile(geometry);
-      Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
-      if(randTileTo == NULL) {
-        break;
-      }
-      List* foxesList = getFoxes(randTileFrom, ts);
-      long index = randomIndexOfList(foxesList);
-      if(migrateFox(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
-  }
+  #endif 
 }

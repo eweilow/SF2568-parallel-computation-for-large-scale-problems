@@ -21,6 +21,7 @@
 #define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
+#define DEBUG_TILESIMULATION 0
 
 #define DEBUG_CLEAR_MEMORY 0
 
@@ -45,7 +46,10 @@
 #include "./simulation/death.c"
 #include "./simulation/init.c"
 #include "./simulation/startDay.c"
+#include "./simulation/rules.c"
+#include "./simulation/tileSimulation.c"
 #include "./simulation/simulateDay.c"
+#include "./simulation/debugTileSimulation.c"
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
@@ -61,7 +65,7 @@ void main(int argc, char **argv)
   Fox fox;
   list_insert(&list2, &fox);
   list_remove(&list2, 0, &fox);
-  
+
   list = initList(sizeof(double), 0);
 
   for(double d = 0.0; d < 100.0; d += 1) {
@@ -84,7 +88,7 @@ void main(int argc, char **argv)
     list_count(&list, &count);
     list_remove(&list, getRandomInt(count), &removed);
   }
-  
+
   list_read(&list, &count, (void**)&data);
   printf("%ld: %lf\n", count-1, data[count-1]);
 }
@@ -147,13 +151,19 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(256, 256, 1, 0.1, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(128, 128, 1, 0.1, 0.0, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
 
   srand(time(0) + rank); 
+  
+  #if DEBUG_TILESIMULATION
+    debugTileSimulation(&geometry);
+    printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
+    return 0;
+  #endif
   
   for(long n = 0; n < geometry.ownTileCount; n++) {
     long i = geometry.ownTileIndices[n];
@@ -234,28 +244,31 @@ int main(int argc, char **argv)
 
     for(long n = 0; n < geometry.tileCount; n++) {
       Tile tile = geometry.tiles[n];
-      fwrite(&tile.x, sizeof(float), 1, fp);
-      fwrite(&tile.y, sizeof(float), 1, fp);
+      fwrite(&tile.x, sizeof(double), 1, fp);
+      fwrite(&tile.y, sizeof(double), 1, fp);
       fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
       fwrite(&tile.process, sizeof(long), 1, fp);
       fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
       fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
-      fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
-      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
-        TileData data = tile.historicalData[ts];
-        fwrite(&data.vegetation, sizeof(float), 1, fp);
+      
+      if(tile.isOwnedByThisProcess) {
+        fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
+        for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+          TileData data = tile.historicalData[ts];
+          fwrite(&data.vegetation, sizeof(double), 1, fp);
 
-        long rabbitsCount;
-        Rabbit *rabbits;
-        list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
-        fwrite(&rabbitsCount, sizeof(long), 1, fp);
-        fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+          long rabbitsCount;
+          Rabbit *rabbits;
+          list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+          fwrite(&rabbitsCount, sizeof(long), 1, fp);
+          fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
 
-        long foxesCount;
-        Fox *foxes;
-        list_read(&data.foxesList, &foxesCount, (void**)&foxes);
-        fwrite(&foxesCount, sizeof(long), 1, fp);
-        fwrite(foxes, sizeof(Fox), foxesCount, fp);
+          long foxesCount;
+          Fox *foxes;
+          list_read(&data.foxesList, &foxesCount, (void**)&foxes);
+          fwrite(&foxesCount, sizeof(long), 1, fp);
+          fwrite(foxes, sizeof(Fox), foxesCount, fp);
+        }
       }
     }
     fclose(fp);

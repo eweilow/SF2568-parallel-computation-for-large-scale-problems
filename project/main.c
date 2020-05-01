@@ -6,7 +6,7 @@
 #include <time.h>
 #include <mpi.h>
 
-#define TIMESTEPS 100
+#define TIMESTEPS (365*10)
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0

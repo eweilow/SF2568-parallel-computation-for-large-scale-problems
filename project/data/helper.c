@@ -41,14 +41,14 @@ Tile *getRandomAdjacentTile(
 }
 
 
-TileData* getTileData(
+inline TileData* getTileData(
   Tile* tile,
   long timestep
 ) {
   return tile->historicalData + timestep;
 }
 
-List* getRabbits(
+inline List* getRabbits(
   Tile* tile,
   long timestep
 ) {
@@ -56,7 +56,7 @@ List* getRabbits(
   return &data->rabbitsList;
 }
 
-List* getFoxes(
+inline List* getFoxes(
   Tile* tile,
   long timestep
 ) {

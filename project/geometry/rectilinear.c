@@ -80,6 +80,7 @@ TileGeometry generateIsland(
   long tilesHigh, 
   long oceanBorderTiles,
   double randomWaterFactor,
+  double totalWaterProbability,
   long processesWide,
   long processesHigh,
   long rank
@@ -127,15 +128,18 @@ TileGeometry generateIsland(
 
       double distanceToBorder = (double)distanceToClosestBorder + tileSize/2;
 
-      double isWaterProbability = exp(-distanceToBorder) * (1.0 - randomWaterFactor) + randomWaterFactor;
+      double isWaterProbability = (exp(-distanceToBorder) * (1.0 - randomWaterFactor) + randomWaterFactor);
       if(isWaterProbability > 1.0) {
         isWaterProbability = 1.0;
+      }
+      if(isWaterProbability < 0.0) {
+        isWaterProbability = 0.0;
       }
       if(distanceToBorder < oceanBorderTiles) {
         isWaterProbability = 1.0;
       }
-
-      bool isWaterTile = isWaterProbability >= 1.0 ? 1 : (getRandomDouble() <= isWaterProbability);
+      isWaterProbability *= totalWaterProbability;
+      bool isWaterTile = isWaterProbability >= 1.0 ? 1 : (getRandomDouble() < isWaterProbability);
 
 
       double x = ((double) (i + 1)) * tileSize;

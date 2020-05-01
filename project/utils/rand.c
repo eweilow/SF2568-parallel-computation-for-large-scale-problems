@@ -6,7 +6,6 @@ double getRandomDouble() {
   return (double)rand() / (double)RAND_MAX;
 }
 
-void getRandomSigmoidDraw(double uDraw, double sigmoidDraw, long center, long width) {
-  uDraw = rand();
-  sigmoidDraw = exp((uDraw-center)/width) / (exp((uDraw-center)/width) + 1.0);
+double getSigmoidProbability(double currentValue, double center, double width) {
+  return exp((currentValue-center)/width) / (exp((currentValue-center)/width) + 1.0);
 }

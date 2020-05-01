@@ -24,11 +24,10 @@ void foxBreeding(Tile* tile, long currentTimeStep){
 }
 
 bool didRabbitDieded(long expLifeSpanDays, long rabbitAge){
-  double std = 3;              // How likely rabbits death is to deviate from life expectancy. Try in Matlab for different std.
-  double uniformDraw = 0;
-  double sigmoidDraw = 0;
-  getRandomSigmoidDraw(uniformDraw, sigmoidDraw, expLifeSpanDays - rabbitAge, std);
-  return (uniformDraw < sigmoidDraw);
+  const double std = 1.0; // How likely rabbits death is to deviate from life expectancy. Try in Matlab for different std.
+  double uniformDraw = getRandomDouble();
+  double probabilityOfDeath = getSigmoidProbability((double)rabbitAge, (double)expLifeSpanDays, std);
+  return uniformDraw <= probabilityOfDeath;
 }
 
 void rabbitNaturalDeaths(Tile* tile, long currentTimeStep){
@@ -51,11 +50,10 @@ void rabbitNaturalDeaths(Tile* tile, long currentTimeStep){
 }
 
 bool didFoxDieded(long expLifeSpanDays, long foxAge){
-  double std = 3;              // How likely rabbits death is to deviate from life expectancy. Try in Matlab for different std.
-  double uniformDraw = 0;
-  double sigmoidDraw = 0;
-  getRandomSigmoidDraw(uniformDraw, sigmoidDraw, expLifeSpanDays - foxAge, std);
-  return (uniformDraw < sigmoidDraw);
+  const double std = 1.0; // How likely rabbits death is to deviate from life expectancy. Try in Matlab for different std.
+  double uniformDraw = getRandomDouble();
+  double probabilityOfDeath = getSigmoidProbability((double)foxAge, (double)expLifeSpanDays, std);
+  return uniformDraw <= probabilityOfDeath;
 }
 
 void foxNaturalDeaths(Tile* tile, long currentTimeStep){
@@ -78,7 +76,7 @@ void foxNaturalDeaths(Tile* tile, long currentTimeStep){
 }
 
 bool foxHunt(Fox* fox, double foxHuntingSuccessChance){
-  double draw = drawU01();
+  double draw = getRandomDouble();
   //printf("hunt draw: %f\n", draw);
   bool success = draw < foxHuntingSuccessChance;
   if (success) {
@@ -112,7 +110,7 @@ void foxHunting(Tile* tile, long currentTimeStep){
       nRabbits--;
     }
     else if (foxesRiskStarvationRule(foxesCount, nRabbits)){
-      long draw = drawU01();
+      double draw = getRandomDouble();
       if (draw < foxFailedHuntingRiskDeathChanceRule()){
         killFox(tile, i, currentTimeStep);
         i--; // list size is reduced??

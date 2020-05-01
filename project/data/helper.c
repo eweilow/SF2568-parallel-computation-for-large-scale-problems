@@ -56,10 +56,25 @@ inline List* getRabbits(
   return &data->rabbitsList;
 }
 
+long getRabbitCount(Tile* tile, long timestep){
+  List* rabbits = getRabbits(tile, timestep);
+  return lengthOfList(rabbits);
+}
+
 inline List* getFoxes(
   Tile* tile,
   long timestep
 ) {
   TileData* data = getTileData(tile, timestep);
   return &data->foxesList;
+}
+
+long getFoxCount(Tile* tile, long timestep){
+  List* foxes = getFoxes(tile, timestep);
+  return lengthOfList(foxes);
+}
+
+double getVegetationLevel(Tile* tile, long timestep){
+  TileData* data = getTileData(tile, timestep);
+  return data->vegetation;
 }

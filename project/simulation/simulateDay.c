@@ -1,91 +1,96 @@
+void simulateRabbitMigrations(
+  Tile* tile, // The current tile
+  long immediatelyAdjacentTileCount,
+  Tile* immediatelyAdjacentTiles,
+  long currentTimeStep)
+{
+  long draw;
+  long index;
+  long nRabbits = getRabbitCount(tile, currentTimeStep);
+  long numberOfRabbitsToMigrate = numberOfRabbitsToMigrateAtEndOfDayRule(nRabbits);
+  long remainingNumberOfRabbitsToMigrate = numberOfRabbitsToMigrate;
+  // replace with drawing rabbit structs with indexes from rabbitsToMigrate from tile
+  for(long i=0; i<numberOfRabbitsToMigrate; i++) {
+    draw = getRandomInt(immediatelyAdjacentTileCount);
+    Tile* drawnTile = &immediatelyAdjacentTiles[draw];
+    index = getRandomInt(remainingNumberOfRabbitsToMigrate);
+    migrateRabbit(tile, drawnTile, index, currentTimeStep);
+    remainingNumberOfRabbitsToMigrate -=1;
+  }
+}
+
+void simulateFoxMigrations(
+  Tile* tile, // The current tile
+  long immediatelyAdjacentTileCount,
+  Tile* immediatelyAdjacentTiles,
+  long adjacentToImmediatelyAdjacentTileCount,
+  Tile* adjacentToImmediatelyAdjacentTiles,
+  long currentTimeStep)
+{
+  printf("migrateFoxes\n");
+  // remove from this tile and add to random tiles 1 or 2 steps away
+  long draw;
+  long index;
+  long nFoxes = getFoxCount(tile, currentTimeStep);
+  for(long i=0; i<nFoxes; i++) {
+    draw = getRandomInt(1 + immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount);
+    index = i;
+    if (draw == immediatelyAdjacentTileCount + adjacentToImmediatelyAdjacentTileCount) {
+      // Do nothing (fox stays in tile)
+    } else if (draw < immediatelyAdjacentTileCount) {
+      Tile* drawnTile = &immediatelyAdjacentTiles[draw];
+      migrateFox(tile, drawnTile, index, currentTimeStep);
+      i--; // List size decreased?????
+    } else {
+      draw = draw - immediatelyAdjacentTileCount;
+      Tile* drawnTile = &adjacentToImmediatelyAdjacentTiles[draw];
+      migrateFox(tile, drawnTile, index, currentTimeStep);
+      i--; // List size decreased?????
+    }
+  }
+}
+
+void simulateMigrations(
+  Tile* tile, // The current tile
+  long immediatelyAdjacentTileCount,
+  Tile* immediatelyAdjacentTiles,
+  long adjacentToImmediatelyAdjacentTileCount,
+  Tile* adjacentToImmediatelyAdjacentTiles,
+  long currentTimeStep)
+{
+  simulateRabbitMigrations(tile,
+    immediatelyAdjacentTileCount,
+    immediatelyAdjacentTiles,
+    currentTimeStep);
+
+  simulateFoxMigrations(tile,
+    immediatelyAdjacentTileCount,
+    immediatelyAdjacentTiles,
+    adjacentToImmediatelyAdjacentTileCount,
+    adjacentToImmediatelyAdjacentTiles,
+    currentTimeStep);
+}
+
+
 void simulateDay(
   TileGeometry *geometry,
   long ts
 ) {
-  const long MAXITER = 10;
-
-  const long RABBIT_BIRTHS = 100;
-  const long FOX_BIRTHS = 100;
-
-  const long RABBIT_DEATHS = 100;
-  const long FOX_DEATHS = 100;
-
-  const long RABBIT_MIGRATIONS = 10;
-  const long FOX_MIGRATIONS = 10;
-
-  for(long k = 0; k < RABBIT_DEATHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      List* rabbitsList = getRabbits(randTile, ts);
-      long index = randomIndexOfList(rabbitsList);
-      if(killRabbit(randTile, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  long nTiles = geometry->tileCount; // Number of tiles belonging to this process
+  for (int i=0; i<nTiles; i++) {
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalStartOfDayUpdates(tileToUpdate, ts);
   }
-
-  for(long k = 0; k < FOX_DEATHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      List* foxesList = getFoxes(randTile, ts);
-      long index = randomIndexOfList(foxesList);
-      if(killFox(randTile, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  for (int i=0; i<nTiles; i++) {
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalMiddleOfDayUpdates(tileToUpdate, ts);
   }
-  
-  for(long k = 0; k < RABBIT_BIRTHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      if(birthRabbit(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  for (int i=0; i<nTiles; i++) {
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    // Migrations
   }
-
-  for(long k = 0; k < FOX_BIRTHS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTile = getRandomTile(geometry);
-      if(birthFox(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
-  }
-  
-  for(long k = 0; k < RABBIT_MIGRATIONS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTileFrom = getRandomTile(geometry);
-      Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
-      if(randTileTo == NULL) {
-        break;
-      }
-      List* rabbitsList = getRabbits(randTileFrom, ts);
-      long index = randomIndexOfList(rabbitsList);
-      if(migrateRabbit(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
-  }
-
-  for(long k = 0; k < FOX_MIGRATIONS; k++) {
-    long i = 0;
-    while(++i <= MAXITER) {
-      Tile* randTileFrom = getRandomTile(geometry);
-      Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
-      if(randTileTo == NULL) {
-        break;
-      }
-      List* foxesList = getFoxes(randTileFrom, ts);
-      long index = randomIndexOfList(foxesList);
-      if(migrateFox(randTileFrom, randTileTo, index, ts)) { // These return true if they actually succeed, so we can try until they return true
-        break;
-      }
-    }
+  for (int i=0; i<nTiles; i++) {
+    Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
+    tileLocalEndOfDayUpdates(tileToUpdate, ts);
   }
 }

@@ -21,6 +21,7 @@
 #define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
+#define DEBUG_TILESIMULATION 1
 
 #define DEBUG_CLEAR_MEMORY 0
 
@@ -45,7 +46,10 @@
 #include "./simulation/death.c"
 #include "./simulation/init.c"
 #include "./simulation/startDay.c"
+#include "./simulation/rules.c"
+#include "./simulation/tileSimulation.c"
 #include "./simulation/simulateDay.c"
+#include "./simulation/debugTileSimulation.c"
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
@@ -61,7 +65,7 @@ void main(int argc, char **argv)
   Fox fox;
   list_insert(&list2, &fox);
   list_remove(&list2, 0, &fox);
-  
+
   list = initList(sizeof(double), 0);
 
   for(double d = 0.0; d < 100.0; d += 1) {
@@ -84,7 +88,7 @@ void main(int argc, char **argv)
     list_count(&list, &count);
     list_remove(&list, getRandomInt(count), &removed);
   }
-  
+
   list_read(&list, &count, (void**)&data);
   printf("%ld: %lf\n", count-1, data[count-1]);
 }
@@ -154,6 +158,12 @@ int main(int argc, char **argv)
   #endif
 
   srand(time(0) + rank); 
+  
+  #if DEBUG_TILESIMULATION
+    debugTileSimulation(&geometry);
+    printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
+    return;
+  #endif
   
   for(long n = 0; n < geometry.ownTileCount; n++) {
     long i = geometry.ownTileIndices[n];

@@ -81,7 +81,7 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
   tile->historicalData[currentTimeStep].vegetation = vegetationEnd;
 }
 */
-
+/*
 void startDataOfNewDay(Tile* tile, int currentTimeStep) {
   List rabbitsList = tile->historicalData[currentTimeStep - 1].rabbitsList;
   List foxesList = tile->historicalData[currentTimeStep - 1].foxesList;
@@ -90,7 +90,7 @@ void startDataOfNewDay(Tile* tile, int currentTimeStep) {
   tile->historicalData[currentTimeStep].rabbitsList = list_clone(&rabbitsList);
   tile->historicalData[currentTimeStep].foxesList = list_clone(&foxesList);
   tile->historicalData[currentTimeStep].vegetation = vegetationCount;
-}
+}*/
 
 /*
 void updateTile(

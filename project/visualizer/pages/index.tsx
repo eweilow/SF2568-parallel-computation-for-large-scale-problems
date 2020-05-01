@@ -8,6 +8,7 @@ import {
   createContext,
 } from "react";
 import { processData, Tile, AnimalLocation, Animal } from "../lib/data";
+import React from "react";
 
 function BufferInput(props: { onBufferChange: (buffer: ArrayBuffer) => void }) {
   const onChange = useCallback(
@@ -153,13 +154,13 @@ function AnimalDisplay(props: {
     <g
       transform={`translate(${x + offsetX} ${y + offsetY})`}
       style={{
-        transition: "transform 200ms",
+        transition: "transform 1000ms",
       }}
     >
       <image
         x={0}
         y={0}
-        width={props.tileSize / 12}
+        width={props.tileSize / 16}
         href={"/art/" + props.type + ".png"}
       />
     </g>
@@ -202,6 +203,49 @@ function Display(props: { buffer: ArrayBuffer }) {
   const [ts, setTs] = useState<number>(0);
   const [growth, setGrowth] = useState<number>(1);
 
+  const actualTS = (React as any).useDeferredValue(ts);
+  const actualGrowth = (React as any).useDeferredValue(growth);
+
+  const svg = useMemo(() => {
+    return (
+      <svg
+        viewBox={`${data.tileSize / 2} ${data.tileSize / 2} ${maxX} ${maxY}`}
+        width={800}
+      >
+        {tiles.map(
+          (tile) =>
+            tile.isOwnedByThisProcess && (
+              <TileDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
+            )
+        )}
+        {tiles.map(
+          (tile) =>
+            tile.isOwnedByThisProcess && (
+              <TreeDisplay key={tile.id} tile={tile} tileSize={data.tileSize} />
+            )
+        )}
+        {Array.from(data.rabbits.values()).map((rabbit) => (
+          <AnimalDisplay
+            type="rabbit"
+            tileSize={data.tileSize}
+            tiles={data.tiles}
+            data={rabbit}
+            key={rabbit.id}
+          />
+        ))}
+        {Array.from(data.foxes.values()).map((fox) => (
+          <AnimalDisplay
+            type="fox"
+            tileSize={data.tileSize}
+            tiles={data.tiles}
+            data={fox}
+            key={fox.id}
+          />
+        ))}
+      </svg>
+    );
+  }, [data, tiles, maxX, maxY]);
+
   return (
     <div>
       Buffer length: {props.buffer.byteLength}.
@@ -209,6 +253,8 @@ function Display(props: { buffer: ArrayBuffer }) {
       Tiles: {tiles.length} ({maxX}x{maxY})
       <br />
       Process: {data.process}
+      <br />
+      TS: {ts}
       <br />
       <input
         type="range"
@@ -226,53 +272,9 @@ function Display(props: { buffer: ArrayBuffer }) {
         step={1 / 10}
       />
       <hr />
-      <TimestepContext.Provider value={ts}>
-        <GrowthFactorContext.Provider value={growth}>
-          <svg
-            viewBox={`${data.tileSize / 2} ${
-              data.tileSize / 2
-            } ${maxX} ${maxY}`}
-            width={800}
-          >
-            {tiles.map(
-              (tile) =>
-                tile.isOwnedByThisProcess && (
-                  <TileDisplay
-                    key={tile.id}
-                    tile={tile}
-                    tileSize={data.tileSize}
-                  />
-                )
-            )}
-            {tiles.map(
-              (tile) =>
-                tile.isOwnedByThisProcess && (
-                  <TreeDisplay
-                    key={tile.id}
-                    tile={tile}
-                    tileSize={data.tileSize}
-                  />
-                )
-            )}
-            {Array.from(data.rabbits.values()).map((rabbit) => (
-              <AnimalDisplay
-                type="rabbit"
-                tileSize={data.tileSize}
-                tiles={data.tiles}
-                data={rabbit}
-                key={rabbit.id}
-              />
-            ))}
-            {Array.from(data.foxes.values()).map((fox) => (
-              <AnimalDisplay
-                type="fox"
-                tileSize={data.tileSize}
-                tiles={data.tiles}
-                data={fox}
-                key={fox.id}
-              />
-            ))}
-          </svg>
+      <TimestepContext.Provider value={actualTS}>
+        <GrowthFactorContext.Provider value={actualGrowth}>
+          {svg}
         </GrowthFactorContext.Provider>
       </TimestepContext.Provider>
       <style jsx>{`

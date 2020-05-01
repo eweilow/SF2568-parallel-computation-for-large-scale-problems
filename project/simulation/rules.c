@@ -10,24 +10,28 @@ double vegetationAtEndOfDayRule(double vegetationAtStartOfDay, long nRabbitsAtSt
 
 ///////////////// RABBITS ///////////////////////
 bool isRabbitBirthingDay(long timestep) {
-  return timestep % (7*7) == 0;
+  return timestep % (7*9) == 0;
 }
 
 long numberOfRabbitsToMigrateAtEndOfDayRule(long nRabbitsAtEndOfDay){
   return nRabbitsAtEndOfDay / 5;
 }
 
+/*
+Returns expected life span of rabbit in DAYS
+*/
 long rabbitExpectedLifeSpanRule(double vegetationLevel) {
+  long monthLength = 28;
   if (vegetationLevel >= 0.35)
-    return 18;
+    return 18*monthLength;
   if (vegetationLevel < 0.15)
-    return 3;
+    return 3*monthLength;
   if (vegetationLevel < 0.25 & vegetationLevel >= 0.15 )
-    return 6;
+    return 6*monthLength;
   if (vegetationLevel < 0.35 & vegetationLevel >= 0.25 )
-    return 12;
+    return 12*monthLength;
 
-  return 18; // Default return, shouldn't happen though
+  return 18*monthLength; // Default return, shouldn't happen though
 }
 
 long rabbitLitterSizeRule(double vegetationLevel, long nRabbitsAtStartOfDay){
@@ -64,6 +68,10 @@ long rabbitLitterSizeRule(double vegetationLevel, long nRabbitsAtStartOfDay){
 ///////////////// FOXES /////////////////////////
 bool isFoxBirthingDay(long timestep) {
   return timestep % (28*6) == 0;
+}
+
+long foxExpectedLifeSpanRule() {
+  return 4*12*28;
 }
 
 long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){

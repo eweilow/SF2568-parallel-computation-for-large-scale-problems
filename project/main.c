@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #define TIMESTEPS 5
 
@@ -12,6 +13,7 @@
 #define DEBUG_SIMULATION 1
 #define DEBUG_SIMULATION_DATA 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
+#define DEBUG_TILESIMULATION 1
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
@@ -32,6 +34,7 @@
 #include "./simulation/simulateDay.c"
 #include "./simulation/rules.c"
 #include "./simulation/tileSimulation.c"
+#include "./simulation/debugTileSimulation.c"
 
 #include "./geometry/rectilinear.c"
 #include "./geometry/debug.c"
@@ -85,6 +88,12 @@ void main(int argc, char **argv)
 
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
+  #endif
+
+  #if DEBUG_TILESIMULATION
+    debugTileSimulation(&geometry);
+    printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
+    return;
   #endif
 
   for(long n = 0; n < geometry.tileCount; n++) {

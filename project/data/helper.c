@@ -1,15 +1,8 @@
 Tile *getRandomTile(
   TileGeometry *geometry
 ) {
-  Tile* tile;
-
-  do {
-    long index = getRandomInt(geometry->tileCount);
-
-    tile = geometry->tiles + index;
-  } while(!tile->isOwnedByThisProcess);
-
-  return tile;
+  long index = getRandomInt(geometry->ownTileCount);
+  return geometry->tiles + (geometry->ownTileIndices[index]);
 }
 
 Tile *getRandomImmediatelyAdjacentTile(

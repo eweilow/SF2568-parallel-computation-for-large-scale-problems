@@ -350,8 +350,9 @@ void applyMigrations(
   TileGeometry *geometry,
   long ts
 ) {
-  for(long n = 0; n < geometry->tileCount; n++) {
-    applyMigrationsOfTile(sendRabbitsLists, sendFoxesList, geometry, geometry->tiles + n, ts);
+  for(long n = 0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    applyMigrationsOfTile(sendRabbitsLists, sendFoxesList, geometry, geometry->tiles + i, ts);
   }
 
   communicate(geometry, processAdjacency, sendRabbitsLists, ts, &sendRabbits, &receiveRabbits, &applyReceivedRabbitMigrations);

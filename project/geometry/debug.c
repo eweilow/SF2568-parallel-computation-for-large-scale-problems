@@ -91,21 +91,24 @@ void debugTiles(
   printf("\n");
   printf("== tiles at timestep %ld ==\n", timestep);
   printf("%5s %8s (%5s, %5s): %8s %8s %8s\n", "id", "process", "x", "y", "rabbits", "foxes", "veg.");
-  for(long n = 0; n < geometry->tileCount; n++) {
-    debugTile(geometry->tiles + n, timestep);
+  for(long n = 0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    debugTile(geometry->tiles + i, timestep);
   }
 
   #if DEBUG_INDIVIDUAL_ANIMALS
     printf("== all rabbits at timestep %ld ==\n", timestep);
     printf("  %5s %7s %5s\n", "tile", "id", "born");
-    for(long n = 0; n < geometry->tileCount; n++) {
-      debugTileRabbits(geometry->tiles + n, timestep);
+    for(long n = 0; n < geometry->ownTileCount; n++) {
+      long i = geometry->ownTileIndices[n];
+      debugTileRabbits(geometry->tiles + i, timestep);
     }
 
     printf("== all foxes at timestep %ld ==\n", timestep);
     printf("  %5s %7s %5s | %s \n", "tile", "id", "born", "hunger");
-    for(long n = 0; n < geometry->tileCount; n++) {
-      debugTileFoxes(geometry->tiles + n, timestep);
+    for(long n = 0; n < geometry->ownTileCount; n++) {
+      long i = geometry->ownTileIndices[n];
+      debugTileFoxes(geometry->tiles + i, timestep);
     }
     printf("\n");
   #endif

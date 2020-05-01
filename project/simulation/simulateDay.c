@@ -76,20 +76,23 @@ void simulateDay(
   TileGeometry *geometry,
   long ts
 ) {
-  long nTiles = geometry->tileCount; // Number of tiles belonging to this process
-  for (int i=0; i<nTiles; i++) {
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalStartOfDayUpdates(tileToUpdate, ts);
   }
-  for (int i=0; i<nTiles; i++) {
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalMiddleOfDayUpdates(tileToUpdate, ts);
   }
-  for (int i=0; i<nTiles; i++) {
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     // Migrations
   }
-  for (int i=0; i<nTiles; i++) {
+  for (int n=0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalEndOfDayUpdates(tileToUpdate, ts);
   }

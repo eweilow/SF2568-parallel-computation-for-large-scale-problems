@@ -81,10 +81,14 @@ void debugSimulateFoxesHunting(Tile *tile, long ts){
 }
 
 void debugTileSimulation(TileGeometry* geometry){
-  for(long n = 0; n < geometry->tileCount; n++) {
-    initializeTile(geometry->tiles + n, TIMESTEPS);
+  for(long n = 0; n < geometry->ownTileCount; n++) {
+    long i = geometry->ownTileIndices[n];
+    initializeTile(geometry->tiles + i, TIMESTEPS);
   }
-  Tile *tile = geometry->tiles + 0;
+
+  long firstLocalTile = geometry->ownTileIndices[0];
+
+  Tile *tile = geometry->tiles + firstLocalTile;
   debugSimulateBreRabbitsBreeding(tile, 0);
   debugSimulateFoxesBreeding(tile, 0);
   debugSimulateFoxesHunting(tile, 0);

@@ -21,7 +21,7 @@
 #define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
-#define DEBUG_TILESIMULATION 1
+#define DEBUG_TILESIMULATION 0
 
 #define DEBUG_CLEAR_MEMORY 0
 
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(4, 4, 1, 0.1, 0.0, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(128, 128, 1, 0.1, 0.0, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);

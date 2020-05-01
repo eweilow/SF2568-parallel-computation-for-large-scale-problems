@@ -92,13 +92,7 @@ void foxNaturalDeaths(Tile* tile, long currentTimeStep){
 
 bool foxHunt(Fox* fox, double foxHuntingSuccessChance, long nRabbits){
   double draw = getRandomDouble();
-  //printf("hunt draw: %f\n", draw);
   bool success = nRabbits > 0 && draw < foxHuntingSuccessChance;
-  if (success) {
-    fox->hunger -= 0.35;
-  } else {
-    fox->hunger += 0.1;
-  }
 
   if(fox->hunger < 0.0) {
     printf("fox->hunger < 0.0\n");
@@ -121,27 +115,29 @@ void foxHunting(Tile* tile, long currentTimeStep){
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
   for (int i=0; i<foxesCount; i++) {
-    if ((foxes + i)->hunger < 0.35) { // Fox already full
-      //printf("Already full: %d \n", i);
-      continue;
-    }
-
-    double foxHuntingSuccessChance = foxHuntingSuccessChanceRule(vegetationLevel, foxesCount, nRabbits);
-    //printf("foxHuntingSuccessChance: %f \n", foxHuntingSuccessChance);
-    bool success = foxHunt(foxes + i, foxHuntingSuccessChance, nRabbits);
-    if (success) {
-      //printf("succesful hunt! %d\n", success);
-      long rabbitToKill = getRandomInt(nRabbits);
-      killRabbit(tile, rabbitToKill, currentTimeStep);
-      nRabbits--;
-    }
-    else if (foxesRiskStarvationRule(foxesCount, nRabbits)){
-      double draw = getRandomDouble();
-      if (draw < foxFailedHuntingRiskDeathChanceRule()){
-        killFox(tile, i, currentTimeStep);
-        i--; // list size is reduced??
-        foxesCount--;
+    bool isFull = (foxes + i)->hunger < 0.35;
+    if (!isFull) {
+      double foxHuntingSuccessChance = foxHuntingSuccessChanceRule(vegetationLevel, foxesCount, nRabbits);
+      bool success = foxHunt(foxes + i, foxHuntingSuccessChance, nRabbits);
+      if (success) {
+        //printf("succesful hunt! %d\n", success);
+        long rabbitToKill = getRandomInt(nRabbits);
+        killRabbit(tile, rabbitToKill, currentTimeStep);
+        nRabbits--;
+        (foxes + i)->hunger -= 0.35;
       }
+      else if (foxesRiskStarvationRule(foxesCount, nRabbits)){
+        double draw = getRandomDouble();
+        if (draw < foxFailedHuntingRiskDeathChanceRule()){
+          killFox(tile, i, currentTimeStep);
+          i--; // list size is reduced??
+          foxesCount--;
+        } else {
+          (foxes + i)->hunger += 0.1;
+        }
+      }
+    } else {
+      (foxes + i)->hunger += 0.1;
     }
   }
 }
@@ -152,7 +148,6 @@ void killStarvedFoxes(Tile* tile, long currentTimeStep){
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
   for (int i=0; i<foxesCount; i++) {
-    printf("FOX HAS HUNGER %lf: %s\n",(foxes + i)->hunger >= 1.4 ? "KILL FOX": "SAVE FOX");
     if ((foxes + i)->hunger >= 1.4) {
       killFox(tile, i, currentTimeStep);
       i--; // list size reduced??

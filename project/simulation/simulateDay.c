@@ -35,20 +35,30 @@ void simulateMigrations(
 }
 
 
+#define USE_START_OF_DAY_UPDATES 1
+#define USE_MIDDLE_OF_DAY_UPDATES 1
+#define USE_MIGRATION_UPDATES 1
+#define USE_END_OF_DAY_UPDATES 1
+
 void simulateDay(
   TileGeometry *geometry,
   long ts
 ) {
+  #if USE_START_OF_DAY_UPDATES
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalStartOfDayUpdates(tileToUpdate, ts);
   }
+  #endif 
+  #if USE_MIDDLE_OF_DAY_UPDATES
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalMiddleOfDayUpdates(tileToUpdate, ts);
   }
+  #endif 
+  #if USE_MIGRATION_UPDATES
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
@@ -58,9 +68,12 @@ void simulateDay(
       ts
     );
   }
+  #endif 
+  #if USE_END_OF_DAY_UPDATES
   for (int n=0; n < geometry->ownTileCount; n++) {
     long i = geometry->ownTileIndices[n];
     Tile *tileToUpdate = geometry->tiles + i; // Should only be tile belonging to this process
     tileLocalEndOfDayUpdates(tileToUpdate, ts);
   }
+  #endif 
 }

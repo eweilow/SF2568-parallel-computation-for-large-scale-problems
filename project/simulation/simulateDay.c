@@ -40,10 +40,12 @@ void simulateFoxMigrations(
     } else if (draw < immediatelyAdjacentTileCount) {
       Tile* drawnTile = &immediatelyAdjacentTiles[draw];
       migrateFox(tile, drawnTile, index, currentTimeStep);
+      i--; // List size decreased?????
     } else {
       draw = draw - immediatelyAdjacentTileCount;
       Tile* drawnTile = &adjacentToImmediatelyAdjacentTiles[draw];
       migrateFox(tile, drawnTile, index, currentTimeStep);
+      i--; // List size decreased?????
     }
   }
 }

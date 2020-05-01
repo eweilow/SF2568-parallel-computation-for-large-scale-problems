@@ -163,11 +163,13 @@ TileGeometry generateIsland(
 
       tiles[tileIndex].adjacency.immediatelyAdjacentTileIndicesCount = 0;
       tiles[tileIndex].adjacency.indirectlyAdjacentTileIndicesCount = 0;
-      tiles[tileIndex].adjacency.immediatelyAdjacentTileIndices = (long*)calloc(8, sizeof(long));
-      tiles[tileIndex].adjacency.indirectlyAdjacentTileIndices = (long*)calloc(16, sizeof(long));
+      tiles[tileIndex].adjacency.immediatelyAdjacentTileIndices = NULL;
+      tiles[tileIndex].adjacency.indirectlyAdjacentTileIndices = NULL;
 
       // Unless this is true, we will never need this data
       if(tiles[tileIndex].isOwnedByThisProcess) {
+        tiles[tileIndex].adjacency.immediatelyAdjacentTileIndices = (long*)calloc(8, sizeof(long));
+        tiles[tileIndex].adjacency.indirectlyAdjacentTileIndices = (long*)calloc(16, sizeof(long));
         ++ownTileCount;
         if(!isWaterTile) {
           generateAdjacencyMap(1, i, j, tilesWide, tilesHigh, &tiles[tileIndex].adjacency.immediatelyAdjacentTileIndicesCount, &tiles[tileIndex].adjacency.immediatelyAdjacentTileIndices);

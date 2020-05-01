@@ -3,7 +3,6 @@ void simulateRabbitMigrations(
   Tile* tile,
   long ts)
 {
-  printf("migrateRabbits\n");
   // remove from this tile and add to random tiles 1 or 2 steps away
   long nRabbits = getRabbitCount(tile, ts);
   for(long i=0; i < nRabbits; i++) {
@@ -17,7 +16,6 @@ void simulateFoxMigrations(
   Tile* tile,
   long ts)
 {
-  printf("migrateFoxes\n");
   // remove from this tile and add to random tiles 1 or 2 steps away
   long nFoxes = getFoxCount(tile, ts);
   for(long i=0; i < nFoxes; i++) {

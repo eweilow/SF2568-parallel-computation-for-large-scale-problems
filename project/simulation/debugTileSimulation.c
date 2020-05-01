@@ -1,13 +1,12 @@
-/*
-
-*/
 void printRabbits(Tile *tile, long ts){
   List *rabbitsList = getRabbits(tile, ts);
   long rabbitsCount;
   Rabbit* rabbits;
   list_read(rabbitsList, &rabbitsCount, (void**)&rabbits);
   for (int i=0; i<rabbitsCount; i++) {
-    printf("Rabbit present id: %ld birthday: %ld\n", rabbits[i].id, rabbits[i].birthDay);
+    char globalId[50];
+    formatGlobalId(rabbits[i].id, globalId);
+    printf("Rabbit present id: %s, birthday: %ld\n", globalId, rabbits[i].birthDay);
   }
 }
 
@@ -22,7 +21,9 @@ void printFoxes(Tile *tile, long ts){
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
   for (int i=0; i<foxesCount; i++) {
-    printf("Fox present id: %ld birthday: %ld hunger: %f \n", foxes[i].id, foxes[i].birthDay, foxes[i].hunger);
+    char globalId[50];
+    formatGlobalId(foxes[i].id, globalId);
+    printf("Fox present id: %s, birthday: %ld hunger: %f \n", globalId, foxes[i].birthDay, foxes[i].hunger);
   }
 }
 
@@ -33,8 +34,8 @@ void printNumberOfFoxes(Tile* tile, long ts) {
 
 void debugSimulateBreRabbitsBreeding(Tile *tile, long ts){
   printf("********* DEBUG SIMULATE RABBITS Breeding START ************* %ld\n", ts);
-  printf("Rabbits before breeding \n");
-  printRabbits(tile, ts);
+  // printf("Rabbits before breeding \n");
+  // printRabbits(tile, ts);
 
   bool expectFalse = isRabbitBirthingDay(13);
   printf("isRabbitBirthingDay(13) returned %d - expected 0 \n", expectFalse);
@@ -42,8 +43,8 @@ void debugSimulateBreRabbitsBreeding(Tile *tile, long ts){
   printf("isRabbitBirthingDay(63) returned %d - expected 1 \n", expectTrue);
 
   rabbitBreeding(tile, ts);
-  printf("Rabbits after breeding \n");
-  printRabbits(tile, ts);
+  // printf("Rabbits after breeding \n");
+  // printRabbits(tile, ts);
 
   printf("********* DEBUG SIMULATE RABBITS Breeding END ************* %ld\n", ts);
 
@@ -67,13 +68,13 @@ void debugSimulateFoxesBreeding(Tile *tile, long ts){
 
 void debugSimulateFoxesHunting(Tile *tile, long ts){
   printf("********* DEBUG SIMULATE Foxes Hunting START ************* %ld\n", ts);
-  printf("BEFORE hunting \n");
-  printFoxes(tile, ts);
+  // printf("BEFORE hunting \n");
+  // printFoxes(tile, ts);
   printNumberOfFoxes(tile, ts);
   printNumberOfRabbits(tile, ts);
   foxHunting(tile, ts);
-  printf("AFTER hunting \n");
-  printFoxes(tile, ts);
+  // printf("AFTER hunting \n");
+  // printFoxes(tile, ts);
   printNumberOfRabbits(tile, ts);
   printNumberOfFoxes(tile, ts);
 
@@ -89,6 +90,7 @@ void debugTileSimulation(TileGeometry* geometry){
   long firstLocalTile = geometry->ownTileIndices[0];
 
   Tile *tile = geometry->tiles + firstLocalTile;
+  printf("Is tile a water tile? %s\n", tile->isWaterTile ? "yes" : "no");
   debugSimulateBreRabbitsBreeding(tile, 0);
   debugSimulateFoxesBreeding(tile, 0);
   debugSimulateFoxesHunting(tile, 0);

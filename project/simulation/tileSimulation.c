@@ -6,15 +6,26 @@ void vegetationGrowth(Tile* tile, int currentTimeStep) {
 }
 
 void rabbitBreeding(Tile* tile, long currentTimeStep){
+  #if DEBUG_STEPS
+  if(tile->id == 0) {
+    printf("Breeding rabbits in day %ld\n", currentTimeStep);
+  }
+  #endif
   long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
   long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
   long litterSize = rabbitLitterSizeRule(vegetationLevel, nRabbitsAtStartOfDay);
   long nBirths = nRabbitsAtStartOfDay/2 * litterSize;
+
   for (int i=0; i<nBirths;i++)
     birthRabbit(tile,currentTimeStep);
 }
 
 void foxBreeding(Tile* tile, long currentTimeStep){
+  #if DEBUG_STEPS
+  if(tile->id == 0) {
+    printf("Breeding foxes in day %ld\n", currentTimeStep);
+  }
+  #endif
   long nFoxesAtStartOfDay = getFoxCount(tile, currentTimeStep);
   long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
   long litterSize = foxLitterSizeRule(nFoxesAtStartOfDay, nRabbitsAtStartOfDay);
@@ -32,19 +43,22 @@ bool didRabbitDieded(long expLifeSpanDays, long rabbitAge){
 
 void rabbitNaturalDeaths(Tile* tile, long currentTimeStep){
   long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
-  long nRabbitsAtStartOfDay = getRabbitCount(tile, currentTimeStep);
   long expLifeSpanDays = rabbitExpectedLifeSpanRule(vegetationLevel);
+  
   List *rabbitsList = getRabbits(tile, currentTimeStep);
+
   long rabbitsCount;
   Rabbit* rabbits;
   list_read(rabbitsList, &rabbitsCount, (void**)&rabbits);
-  for (int i=0; i<nRabbitsAtStartOfDay; i++) {
+
+  for (int i=0; i < rabbitsCount; i++) {
     //Rabbit *rabbit = list_read();
     long rabbitBirthday = rabbits[i].birthDay;
     long rabbitAge = currentTimeStep - rabbitBirthday;
     if (didRabbitDieded(expLifeSpanDays, rabbitAge)) {
       killRabbit(tile, i, currentTimeStep);
       i--; // list size is reduced??
+      rabbitsCount--;
     }
   }
 }
@@ -65,12 +79,13 @@ void foxNaturalDeaths(Tile* tile, long currentTimeStep){
   long foxesCount;
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
-  for (int i=0; i<foxesCount; i++) {
+  for (int i=0; i < foxesCount; i++) {
     long foxBirthDay = foxes[i].birthDay;
     long foxAge = currentTimeStep - foxBirthDay;
     if (didFoxDieded(expLifeSpanDays, foxAge)) {
       killFox(tile, i, currentTimeStep);
       i--; // list size is reduced??
+      foxesCount--;
     }
   }
 }
@@ -90,6 +105,7 @@ bool foxHunt(Fox* fox, double foxHuntingSuccessChance){
 void foxHunting(Tile* tile, long currentTimeStep){
   long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
   long nRabbits = getRabbitCount(tile, currentTimeStep);
+
   List *foxesList = getFoxes(tile, currentTimeStep);
   long foxesCount;
   Fox* foxes;
@@ -114,6 +130,7 @@ void foxHunting(Tile* tile, long currentTimeStep){
       if (draw < foxFailedHuntingRiskDeathChanceRule()){
         killFox(tile, i, currentTimeStep);
         i--; // list size is reduced??
+        foxesCount--;
       }
     }
   }
@@ -128,12 +145,12 @@ void killStarvedFoxes(Tile* tile, long currentTimeStep){
     if ((foxes + i)->hunger >= 1.4) {
       killFox(tile, i, currentTimeStep);
       i--; // list size reduced??
+      foxesCount--;
     }
   }
 }
 
 void tileLocalStartOfDayUpdates(Tile* tile, long currentTimeStep) {
-  startDataOfNewDay(tile, currentTimeStep);
   if (isRabbitBirthingDay(currentTimeStep))
     rabbitBreeding(tile, currentTimeStep);
 

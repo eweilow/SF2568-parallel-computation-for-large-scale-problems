@@ -145,7 +145,7 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(64, 64, 1, 0.1, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(256, 256, 1, 0.1, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
@@ -158,8 +158,8 @@ int main(int argc, char **argv)
     initializeTile(geometry.tiles + i, TIMESTEPS);
   }
   
-  initEnd = clock(); 
   MPI_Barrier(MPI_COMM_WORLD);
+  initEnd = clock(); 
   start = clock();
   // debugTiles(&geometry, 0);
 
@@ -182,12 +182,13 @@ int main(int argc, char **argv)
     applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
   end = clock();
 
   if(rank == 0) {
     double init_time_taken = (double)(initEnd - initStart) / (double)(CLOCKS_PER_SEC);
     double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
-    printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf\n", processesWide, processesHigh, init_time_taken, time_taken);
+    printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf (%ld)\n", processesWide, processesHigh, init_time_taken, time_taken, (long)CLOCKS_PER_SEC);
   }
 
   // debugTiles(&geometry, TIMESTEPS - 1);

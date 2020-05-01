@@ -2,18 +2,20 @@ void simulateDay(
   TileGeometry *geometry,
   long ts
 ) {
-  const long RABBIT_BIRTHS = 0;
-  const long FOX_BIRTHS = 0;
+  const long MAXITER = 10;
 
-  const long RABBIT_DEATHS = 0;
-  const long FOX_DEATHS = 0;
+  const long RABBIT_BIRTHS = 100;
+  const long FOX_BIRTHS = 100;
 
-  const long RABBIT_MIGRATIONS = 100;
-  const long FOX_MIGRATIONS = 100;
+  const long RABBIT_DEATHS = 100;
+  const long FOX_DEATHS = 100;
+
+  const long RABBIT_MIGRATIONS = 10;
+  const long FOX_MIGRATIONS = 10;
 
   for(long k = 0; k < RABBIT_DEATHS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTile = getRandomTile(geometry);
       List* rabbitsList = getRabbits(randTile, ts);
       long index = randomIndexOfList(rabbitsList);
@@ -25,7 +27,7 @@ void simulateDay(
 
   for(long k = 0; k < FOX_DEATHS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTile = getRandomTile(geometry);
       List* foxesList = getFoxes(randTile, ts);
       long index = randomIndexOfList(foxesList);
@@ -37,7 +39,7 @@ void simulateDay(
   
   for(long k = 0; k < RABBIT_BIRTHS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTile = getRandomTile(geometry);
       if(birthRabbit(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
         break;
@@ -47,7 +49,7 @@ void simulateDay(
 
   for(long k = 0; k < FOX_BIRTHS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTile = getRandomTile(geometry);
       if(birthFox(randTile, ts)) { // These return true if they actually succeed, so we can try until they return true
         break;
@@ -57,7 +59,7 @@ void simulateDay(
   
   for(long k = 0; k < RABBIT_MIGRATIONS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTileFrom = getRandomTile(geometry);
       Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
       if(randTileTo == NULL) {
@@ -73,7 +75,7 @@ void simulateDay(
 
   for(long k = 0; k < FOX_MIGRATIONS; k++) {
     long i = 0;
-    while(++i <= 100) {
+    while(++i <= MAXITER) {
       Tile* randTileFrom = getRandomTile(geometry);
       Tile* randTileTo = getRandomAdjacentTile(geometry, randTileFrom);
       if(randTileTo == NULL) {

@@ -6,7 +6,7 @@
 #include <time.h>
 #include <mpi.h>
 
-#define TIMESTEPS 100
+#define TIMESTEPS (365*10)
 
 #define TEST_LIST 0
 #define DEBUG_LIST 0
@@ -18,7 +18,13 @@
 #define DEBUG_PROCESS_ADJACENCY 0
 #define DEBUG_SIMULATION_DATA 0
 #define DEBUG_IPC 0
+#define DEBUG_LIST_ALLOC 0
 #define DEBUG_INDIVIDUAL_ANIMALS 0
+#define DEBUG_STEPS 0
+
+#define DEBUG_CLEAR_MEMORY 0
+
+#define SAVE_DATA 0
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
@@ -99,8 +105,9 @@ void main(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-  long processesWide = 4;
-  long processesHigh = 4;
+  char *endPtr;
+  long processesWide = strtol(argv[1], &endPtr, 10);
+  long processesHigh = strtol(argv[2], &endPtr, 10);
 
   long rank, N;
   bool shouldCompute = spawnMPI(argc, argv, &rank, &N, processesWide, processesHigh);
@@ -124,20 +131,23 @@ int main(int argc, char **argv)
     debugBinary(id >> 40, sizeof(u_int64_t)*8);
   #endif
 
+  clock_t initStart, initEnd, start, end; 
+  MPI_Barrier(MPI_COMM_WORLD);
+  initStart = clock(); 
 
   ProcessAdjacency processAdjacency = getAdjacency(rank, processesWide, processesHigh);
   for(long n = 0; n < ADJACENT_PROCESSES; n++) {
     long index = processAdjacency.list[n];
     if(index >= 0) {
-      sendRabbitsLists[index] = initList(sizeof(RabbitMigration), 0);
-      sendFoxesList[index] = initList(sizeof(FoxMigration), 0);
+      sendRabbitsLists[index] = initList(sizeof(RabbitMigration), 1000);
+      sendFoxesList[index] = initList(sizeof(FoxMigration), 1000);
     }
   }
 
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(64, 64, 1, 0.1, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(256, 256, 1, 0.1, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
@@ -150,6 +160,9 @@ int main(int argc, char **argv)
     initializeTile(geometry.tiles + i, TIMESTEPS);
   }
   
+  MPI_Barrier(MPI_COMM_WORLD);
+  initEnd = clock(); 
+  start = clock();
   // debugTiles(&geometry, 0);
 
   for(long ts = 1; ts < TIMESTEPS; ts++) {
@@ -157,14 +170,31 @@ int main(int argc, char **argv)
       long i = geometry.ownTileIndices[n];
       startDataOfNewDay(geometry.tiles + i, ts);
     }
-    printf("Simulating day %ld\n", ts);
+    #if DEBUG_STEPS
+    if(rank == 0) {
+      printf("Simulating day %ld\n", ts);
+    }
+    #endif
     simulateDay(&geometry, ts);
-    printf("Applying migrations for day %ld\n", ts);
+    #if DEBUG_STEPS
+    if(rank == 0) {
+      printf("Applying migrations for day %ld\n", ts);
+    }
+    #endif
     applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
   }
+
+  MPI_Barrier(MPI_COMM_WORLD);
+  end = clock();
+
+  if(rank == 0) {
+    double init_time_taken = (double)(initEnd - initStart) / (double)(CLOCKS_PER_SEC);
+    double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
+    printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf (%ld)\n", processesWide, processesHigh, init_time_taken, time_taken, (long)CLOCKS_PER_SEC);
+  }
+
   // debugTiles(&geometry, TIMESTEPS - 1);
 
-  printf("\n ***** Run sucessful ***** \n");
 
   // initialize initial element of historicalData
 
@@ -185,51 +215,89 @@ int main(int argc, char **argv)
 
   // store to file in each child
 
-  printf("\n ***** Killing MPI ***** \n");
   murderMPI();
 
-  printf("\n ***** Saving tiles ***** \n");
-  char fileName[50];
-  sprintf(fileName, "./data_p%ld.bin", rank);
-  FILE *fp = fopen(fileName, "w");
+  #if SAVE_DATA
+    printf("\n ***** Saving tiles ***** \n");
+    char fileName[50];
+    sprintf(fileName, "./data_p%ld.bin", rank);
+    FILE *fp = fopen(fileName, "w");
 
-  fwrite(&rank, sizeof(long), 1, fp);
-  fwrite(&geometry.tileCount, sizeof(long), 1, fp);
-  fwrite(&geometry.tileSize, sizeof(double), 1, fp);
+    fwrite(&rank, sizeof(long), 1, fp);
+    fwrite(&geometry.tileCount, sizeof(long), 1, fp);
+    fwrite(&geometry.tileSize, sizeof(double), 1, fp);
 
-  long rabbitSize = sizeof(Rabbit);
-  fwrite(&rabbitSize, sizeof(long), 1, fp);
-  long foxSize = sizeof(Fox);
-  fwrite(&foxSize, sizeof(long), 1, fp);
+    long rabbitSize = sizeof(Rabbit);
+    fwrite(&rabbitSize, sizeof(long), 1, fp);
+    long foxSize = sizeof(Fox);
+    fwrite(&foxSize, sizeof(long), 1, fp);
 
+    for(long n = 0; n < geometry.tileCount; n++) {
+      Tile tile = geometry.tiles[n];
+      fwrite(&tile.x, sizeof(float), 1, fp);
+      fwrite(&tile.y, sizeof(float), 1, fp);
+      fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
+      fwrite(&tile.process, sizeof(long), 1, fp);
+      fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
+      fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
+      fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
+      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+        TileData data = tile.historicalData[ts];
+        fwrite(&data.vegetation, sizeof(float), 1, fp);
+
+        long rabbitsCount;
+        Rabbit *rabbits;
+        list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
+        fwrite(&rabbitsCount, sizeof(long), 1, fp);
+        fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+
+        long foxesCount;
+        Fox *foxes;
+        list_read(&data.foxesList, &foxesCount, (void**)&foxes);
+        fwrite(&foxesCount, sizeof(long), 1, fp);
+        fwrite(foxes, sizeof(Fox), foxesCount, fp);
+      }
+    }
+    fclose(fp);
+    printf("\n ***** Data saved ***** \n");
+  #endif
+
+  #if DEBUG_CLEAR_MEMORY
   for(long n = 0; n < geometry.tileCount; n++) {
     Tile tile = geometry.tiles[n];
-    fwrite(&tile.x, sizeof(double), 1, fp);
-    fwrite(&tile.y, sizeof(double), 1, fp);
-    fwrite(&tile.id, sizeof(u_int64_t), 1, fp);
-    fwrite(&tile.process, sizeof(long), 1, fp);
-    fwrite(&tile.isOwnedByThisProcess, sizeof(bool), 1, fp);
-    fwrite(&tile.isWaterTile, sizeof(bool), 1, fp);
-    fwrite(&tile.historicalDataCount, sizeof(long), 1, fp);
-    for(long ts = 0; ts < tile.historicalDataCount; ts++) {
-      TileData data = tile.historicalData[ts];
-      fwrite(&data.vegetation, sizeof(double), 1, fp);
+    if(tile.isOwnedByThisProcess) {
+      for(long ts = 0; ts < tile.historicalDataCount; ts++) {
+        list_clear(&tile.historicalData[ts].rabbitsList);
+        list_clear(&tile.historicalData[ts].foxesList);
+      }
 
-      long rabbitsCount;
-      Rabbit *rabbits;
-      list_read(&data.rabbitsList, &rabbitsCount, (void**)&rabbits);
-      fwrite(&rabbitsCount, sizeof(long), 1, fp);
-      fwrite(rabbits, sizeof(Rabbit), rabbitsCount, fp);
+      free(tile.historicalData);
 
-      long foxesCount;
-      Fox *foxes;
-      list_read(&data.foxesList, &foxesCount, (void**)&foxes);
-      fwrite(&foxesCount, sizeof(long), 1, fp);
-      fwrite(foxes, sizeof(Fox), foxesCount, fp);
+      list_clear(&tile.rabbitMigrationsList);
+      list_clear(&tile.foxMigrationsList);
+      
+      if(tile.adjacency.immediatelyAdjacentTileIndices != NULL) {
+        free(tile.adjacency.immediatelyAdjacentTileIndices);
+      }
+      if(tile.adjacency.indirectlyAdjacentTileIndices != NULL) {
+        free(tile.adjacency.indirectlyAdjacentTileIndices);
+      }
     }
   }
-  fclose(fp);
-  printf("\n ***** Data saved ***** \n");
+  for(long n = 0; n < ADJACENT_PROCESSES; n++) {
+    long index = processAdjacency.list[n];
+    if(index >= 0) {
+      list_clear(&sendRabbitsLists[index]);
+      list_clear(&sendFoxesList[index]);
+    }
+  }
+  if(geometry.tiles != NULL) {
+    free(geometry.tiles);
+  }
+  if(geometry.ownTileIndices != NULL) {
+    free(geometry.ownTileIndices);
+  }
+  #endif
 
   return 0;
 }

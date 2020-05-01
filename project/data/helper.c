@@ -1,15 +1,8 @@
 Tile *getRandomTile(
   TileGeometry *geometry
 ) {
-  Tile* tile;
-
-  do {
-    long index = getRandomInt(geometry->tileCount);
-
-    tile = geometry->tiles + index;
-  } while(!tile->isOwnedByThisProcess);
-
-  return tile;
+  long index = getRandomInt(geometry->ownTileCount);
+  return geometry->tiles + (geometry->ownTileIndices[index]);
 }
 
 Tile *getRandomImmediatelyAdjacentTile(
@@ -48,14 +41,14 @@ Tile *getRandomAdjacentTile(
 }
 
 
-TileData* getTileData(
+inline TileData* getTileData(
   Tile* tile,
   long timestep
 ) {
   return tile->historicalData + timestep;
 }
 
-List* getRabbits(
+inline List* getRabbits(
   Tile* tile,
   long timestep
 ) {
@@ -63,7 +56,7 @@ List* getRabbits(
   return &data->rabbitsList;
 }
 
-List* getFoxes(
+inline List* getFoxes(
   Tile* tile,
   long timestep
 ) {

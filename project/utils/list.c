@@ -178,7 +178,7 @@ void list_read(
 void list_clear(
   List* list
 ) {
-  if(list->currentMemorySize > 0) {
+  if(list->currentMemorySize > 0 && list->memptr != NULL) {
     free(list->memptr);
     list->memptr = NULL;
     list->currentMemorySize = 0;

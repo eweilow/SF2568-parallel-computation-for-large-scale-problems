@@ -6,6 +6,14 @@
 #include <time.h>
 #include <mpi.h>
 
+#define GEOM_W 8
+#define GEOM_H 8
+
+#define GEOM_EDGE_WATER_TILES 0
+#define GEOM_WATER_PROBABILITY 0.1
+#define GEOM_OVERALL_WATER_PROBABILITY 0.0 // Set this to 0.0 to get rid of water everywhere
+#define GEOM_CASE 1 // 0, 1, or 2. It's likely good to set GEOM_OVERALL_WATER_PROBABILITY to 0 for the corner cases.
+
 #define TIMESTEPS (365*10)
 
 #define TEST_LIST 0
@@ -22,16 +30,17 @@
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
 #define DEBUG_TILESIMULATION 0
+#define DEBUG_CLEAR_MEMORY 0
 
 #define USE_REDUCED_OUTPUT 1
 
-#define DEBUG_CLEAR_MEMORY 0
+#ifndef SAVE_DATA
+  #define SAVE_DATA 0
+#endif
 
-#define SAVE_DATA 0
-
+// https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
-// https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
 
 #include "./utils/rand.c"
 #include "./utils/list.c"
@@ -158,14 +167,23 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(8, 8, 0, 0.1, 0.0, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(
+    GEOM_W, 
+    GEOM_H, 
+    GEOM_EDGE_WATER_TILES, 
+    GEOM_WATER_PROBABILITY, 
+    GEOM_OVERALL_WATER_PROBABILITY, 
+    processesWide, 
+    processesHigh, 
+    rank
+  );
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
-  
+
   // Init random with time and rank of process
-  srand(time(0) + rank); 
+  srand(time(0)); 
   
   #if DEBUG_TILESIMULATION
     debugTileSimulation(&geometry);
@@ -189,6 +207,7 @@ int main(int argc, char **argv)
       long i = geometry.ownTileIndices[n];
       startDataOfNewDay(geometry.tiles + i, ts);
     }
+
     #if DEBUG_STEPS
     if(rank == 0) {
       printf("Simulating day %ld\n", ts);
@@ -201,6 +220,7 @@ int main(int argc, char **argv)
     }
     #endif
     applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
+
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -218,28 +238,6 @@ int main(int argc, char **argv)
     reduceOutput(geometry.tiles + i, TIMESTEPS-1);
   }
   #endif
-
-  // debugTiles(&geometry, TIMESTEPS - 1);
-
-
-  // initialize initial element of historicalData
-
-  // PARALLEL ONLY: scatter tiles and adjacency from root to children
-
-  // PARALLEL ONLY: create map between global and local indices
-  // PARALLEL ONLY: create map between local and global indices
-
-  // PARALLEL ONLY: create map for data exchanging
-
-  // initialize future historicalData in each tile on every child
-
-  // for each step {
-    // run simulation on tiles local to this tile
-
-    // PARALLEL ONLY: exchange data as necessary, according to the exchange map
-  // }
-
-  // store to file in each child
 
   murderMPI();
 

@@ -163,7 +163,8 @@ int main(int argc, char **argv)
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
-
+  
+  // Init random with time and rank of process
   srand(time(0) + rank); 
   
   #if DEBUG_TILESIMULATION

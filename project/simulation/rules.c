@@ -21,18 +21,23 @@ long numberOfRabbitsToMigrateAtEndOfDayRule(long nRabbitsAtEndOfDay){
 /*
 Returns expected life span of rabbit in DAYS
 */
-long rabbitExpectedLifeSpanRule(double vegetationLevel) {
-  long monthLength = 28;
-  if (vegetationLevel >= 0.35)
-    return 18*monthLength;
-  if (vegetationLevel < 0.15)
-    return 3*monthLength;
-  if (vegetationLevel < 0.25 & vegetationLevel >= 0.15 )
-    return 6*monthLength;
-  if (vegetationLevel < 0.35 & vegetationLevel >= 0.25 )
-    return 12*monthLength;
 
-  return 18*monthLength; // Default return, shouldn't happen though
+#define VEG_L1 1.0
+#define VEG_L2 0.3
+#define VEG_L3 0.25
+#define VEG_L4 0.15
+#define VEG_MO 28
+
+long rabbitExpectedLifeSpanRule(double vegetationLevel) {
+  if (vegetationLevel < VEG_L4)
+    return 3*VEG_MO;
+  if (vegetationLevel < VEG_L3)
+    return 6*VEG_MO;
+  if (vegetationLevel < VEG_L2)
+    return 12*VEG_MO;
+  if (vegetationLevel < VEG_L1)
+    return 18*VEG_MO;
+  return 18*VEG_MO;
 }
 
 long rabbitLitterSizeRule(double vegetationLevel, long nRabbitsAtStartOfDay){
@@ -42,10 +47,10 @@ long rabbitLitterSizeRule(double vegetationLevel, long nRabbitsAtStartOfDay){
   if (vegetationLevel < 0.2) {
     return nRabbitsAtStartOfDay <= 700 ? 3 : 2;
   }
-  if (vegetationLevel >= 0.2 & vegetationLevel < 0.5) {
+  if (vegetationLevel >= 0.2 && vegetationLevel < 0.5) {
     return nRabbitsAtStartOfDay <= 700 ? 4 : 3;
   }
-  if (vegetationLevel >= 0.5 & vegetationLevel < 0.8) {
+  if (vegetationLevel >= 0.5 && vegetationLevel < 0.8) {
     if (nRabbitsAtStartOfDay <= 200)
       return 6;
     if (nRabbitsAtStartOfDay <= 700)

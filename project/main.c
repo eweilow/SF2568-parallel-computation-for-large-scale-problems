@@ -43,6 +43,11 @@
 #include "./data/helper.c"
 #include "./data/migrations.c"
 
+#define FOXES_MEALS_PER_WEEK_MAX ((double)4.0)
+#define FOXES_MEALS_PER_WEEK_MIN ((double)2.0)
+#define FOXES_EXTRA_MEALS_PER_WEEK (FOXES_MEALS_PER_WEEK_MAX - FOXES_MEALS_PER_WEEK_MIN)
+#define FOXES_DECREASE_PER_DAY ((double)(FOXES_MEALS_PER_WEEK_MIN / 7.0))
+
 #include "./simulation/migration.c"
 #include "./simulation/birth.c"
 #include "./simulation/death.c"

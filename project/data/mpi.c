@@ -52,9 +52,9 @@ void defineRabbitMigrationType() {
 
 MPI_Datatype FOX_MPI_TYPE;
 void defineFoxType() {
-  int blockLengths[3];
-  MPI_Aint displacementsInStruct[3];
-  MPI_Datatype types[3];
+  int blockLengths[4];
+  MPI_Aint displacementsInStruct[4];
+  MPI_Datatype types[4];
   
   Fox placeholder;
 
@@ -70,8 +70,12 @@ void defineFoxType() {
   displacementsInStruct[2] = (MPI_Aint)((long)&placeholder.hunger - (long)&placeholder);
   types[2] = MPI_DOUBLE;
 
+  blockLengths[3] = 1;
+  displacementsInStruct[3] = (MPI_Aint)((long)&placeholder.extraMeals - (long)&placeholder);
+  types[3] = MPI_DOUBLE;
+
   int output = MPI_Type_create_struct(
-    3, 
+    4, 
     blockLengths, 
     displacementsInStruct, 
     types, 

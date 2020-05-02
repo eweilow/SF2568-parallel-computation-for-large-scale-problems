@@ -8,6 +8,7 @@ typedef struct {
   u_int64_t id;
 
   double hunger;
+  double extraMeals;
 } Fox;
 
 typedef struct {

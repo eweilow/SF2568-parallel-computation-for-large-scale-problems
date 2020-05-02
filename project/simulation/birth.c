@@ -46,7 +46,8 @@ bool birthFox(Tile* inTile, long timestep) {
 
   fox.birthDay = timestep;
   fox.id = getNextId(inTile->id);
-  fox.hunger = 0.7;
+  fox.hunger = FOXES_MEALS_PER_WEEK_MIN;
+  fox.extraMeals = 0.0; //FOXES_MEALS_PER_WEEK_MAX - FOXES_MEALS_PER_WEEK_MIN;
   // Add the fox to the tile list of foxes
   list_insert(inList, &fox);
 

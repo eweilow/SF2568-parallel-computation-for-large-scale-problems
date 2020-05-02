@@ -5,9 +5,12 @@ void simulateRabbitMigrations(
 {
   // remove from this tile and add to random tiles 1 or 2 steps away
   long nRabbits = getRabbitCount(tile, ts);
-  for(long i=0; i < nRabbits; i++) {
+  long rabbitsToMigrate = numberOfRabbitsToMigrateAtEndOfDayRule(nRabbits);
+  for(long i=0; i < rabbitsToMigrate; i++) {
+    long nextRabbit = getRandomInt(nRabbits);
     Tile* nextTile = getRandomRabbitTile(geometry, tile);
-    migrateRabbit(tile, nextTile, i, ts);
+    migrateRabbit(tile, nextTile, nextRabbit, ts);
+    --nRabbits;
   }
 }
 
@@ -20,7 +23,7 @@ void simulateFoxMigrations(
   long nFoxes = getFoxCount(tile, ts);
   for(long i=0; i < nFoxes; i++) {
     Tile* nextTile = getRandomFoxTile(geometry, tile);
-    migrateFox(tile, nextTile, i, ts);
+    migrateFox(tile, nextTile, 0, ts);
   }
 }
 

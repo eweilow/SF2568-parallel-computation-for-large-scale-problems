@@ -6,6 +6,14 @@
 #include <time.h>
 #include <mpi.h>
 
+#define GEOM_W 8
+#define GEOM_H 8
+
+#define GEOM_EDGE_WATER_TILES 0
+#define GEOM_WATER_PROBABILITY 0.1
+#define GEOM_OVERALL_WATER_PROBABILITY 0.0 // Set this to 0.0 to get rid of water everywhere
+#define GEOM_CASE 1 // 0, 1, or 2. It's likely good to set GEOM_OVERALL_WATER_PROBABILITY to 0 for the corner cases.
+
 #define TIMESTEPS (365*10)
 
 #define TEST_LIST 0
@@ -22,14 +30,17 @@
 #define DEBUG_INDIVIDUAL_ANIMALS 0
 #define DEBUG_STEPS 0
 #define DEBUG_TILESIMULATION 0
-
 #define DEBUG_CLEAR_MEMORY 0
 
-#define SAVE_DATA 0
+#define USE_REDUCED_OUTPUT 1
 
+#ifndef SAVE_DATA
+  #define SAVE_DATA 0
+#endif
+
+// https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
-// https://stackoverflow.com/questions/3219393/stdlib-and-colored-output-in-c
 
 #include "./utils/rand.c"
 #include "./utils/list.c"
@@ -40,6 +51,11 @@
 #include "./data/debugMpiTypes.c"
 #include "./data/helper.c"
 #include "./data/migrations.c"
+
+#define FOXES_MEALS_PER_WEEK_MAX ((double)4.0)
+#define FOXES_MEALS_PER_WEEK_MIN ((double)2.0)
+#define FOXES_EXTRA_MEALS_PER_WEEK (FOXES_MEALS_PER_WEEK_MAX - FOXES_MEALS_PER_WEEK_MIN)
+#define FOXES_DECREASE_PER_DAY ((double)(FOXES_MEALS_PER_WEEK_MIN / 7.0))
 
 #include "./simulation/migration.c"
 #include "./simulation/birth.c"
@@ -151,19 +167,30 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(128, 128, 1, 0.1, 0.0, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(
+    GEOM_W, 
+    GEOM_H, 
+    GEOM_EDGE_WATER_TILES, 
+    GEOM_WATER_PROBABILITY, 
+    GEOM_OVERALL_WATER_PROBABILITY, 
+    processesWide, 
+    processesHigh, 
+    rank
+  );
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
   #endif
 
-  srand(time(0) + rank); 
+  // Init random with time and rank of process
+  srand(time(0)); 
   
   #if DEBUG_TILESIMULATION
     debugTileSimulation(&geometry);
     printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
     return 0;
   #endif
+  
   
   for(long n = 0; n < geometry.ownTileCount; n++) {
     long i = geometry.ownTileIndices[n];
@@ -180,6 +207,7 @@ int main(int argc, char **argv)
       long i = geometry.ownTileIndices[n];
       startDataOfNewDay(geometry.tiles + i, ts);
     }
+
     #if DEBUG_STEPS
     if(rank == 0) {
       printf("Simulating day %ld\n", ts);
@@ -192,6 +220,7 @@ int main(int argc, char **argv)
     }
     #endif
     applyMigrations(processAdjacency, sendRabbitsLists, sendFoxesList, &geometry, ts);
+
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -203,39 +232,38 @@ int main(int argc, char **argv)
     printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf (%ld)\n", processesWide, processesHigh, init_time_taken, time_taken, (long)CLOCKS_PER_SEC);
   }
 
-  // debugTiles(&geometry, TIMESTEPS - 1);
-
-
-  // initialize initial element of historicalData
-
-  // PARALLEL ONLY: scatter tiles and adjacency from root to children
-
-  // PARALLEL ONLY: create map between global and local indices
-  // PARALLEL ONLY: create map between local and global indices
-
-  // PARALLEL ONLY: create map for data exchanging
-
-  // initialize future historicalData in each tile on every child
-
-  // for each step {
-    // run simulation on tiles local to this tile
-
-    // PARALLEL ONLY: exchange data as necessary, according to the exchange map
-  // }
-
-  // store to file in each child
+  #if USE_REDUCED_OUTPUT
+  for(long n = 0; n < geometry.ownTileCount; n++) {
+    long i = geometry.ownTileIndices[n];
+    reduceOutput(geometry.tiles + i, TIMESTEPS-1);
+  }
+  #endif
 
   murderMPI();
 
   #if SAVE_DATA
-    printf("\n ***** Saving tiles ***** \n");
+    //printf("\n ***** Saving tiles ***** \n");
     char fileName[50];
-    sprintf(fileName, "./data_p%ld.bin", rank);
+    #if USE_REDUCED_OUTPUT
+      sprintf(fileName, "./data_p%ld.red.bin", rank);
+    #else
+      sprintf(fileName, "./data_p%ld.bin", rank);
+    #endif
     FILE *fp = fopen(fileName, "w");
+
+    long reduced = 0;
+    #if USE_REDUCED_OUTPUT
+      reduced = 1;
+    #endif
+    fwrite(&reduced, sizeof(long), 1, fp);
 
     fwrite(&rank, sizeof(long), 1, fp);
     fwrite(&geometry.tileCount, sizeof(long), 1, fp);
     fwrite(&geometry.tileSize, sizeof(double), 1, fp);
+#if USE_REDUCED_OUTPUT
+    long steps = (long)TIMESTEPS;
+    fwrite(&steps, sizeof(long), 1, fp);
+#endif
 
     long rabbitSize = sizeof(Rabbit);
     fwrite(&rabbitSize, sizeof(long), 1, fp);
@@ -256,6 +284,15 @@ int main(int argc, char **argv)
         for(long ts = 0; ts < tile.historicalDataCount; ts++) {
           TileData data = tile.historicalData[ts];
           fwrite(&data.vegetation, sizeof(double), 1, fp);
+#if USE_REDUCED_OUTPUT
+          fwrite(&data.foxCount, sizeof(long), 1, fp);
+          fwrite(&data.rabbitCount, sizeof(long), 1, fp);
+          fwrite(&data.totalFoxHunger, sizeof(double), 1, fp);
+          fwrite(&data.totalFoxAge, sizeof(long), 1, fp);
+          fwrite(&data.totalRabbitAge, sizeof(long), 1, fp);
+          fwrite(&data.maxFoxAge, sizeof(long), 1, fp);
+          fwrite(&data.maxRabbitAge, sizeof(long), 1, fp);
+#else
 
           long rabbitsCount;
           Rabbit *rabbits;
@@ -268,11 +305,12 @@ int main(int argc, char **argv)
           list_read(&data.foxesList, &foxesCount, (void**)&foxes);
           fwrite(&foxesCount, sizeof(long), 1, fp);
           fwrite(foxes, sizeof(Fox), foxesCount, fp);
+#endif
         }
       }
     }
     fclose(fp);
-    printf("\n ***** Data saved ***** \n");
+    //printf("\n ***** Data saved ***** \n");
   #endif
 
   #if DEBUG_CLEAR_MEMORY

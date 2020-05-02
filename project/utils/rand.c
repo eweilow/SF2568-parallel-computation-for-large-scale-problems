@@ -10,5 +10,6 @@ double getRandomDouble() {
 
 // Returns in the interval (0, 1)
 double getSigmoidProbability(double currentValue, double center, double width) {
-  return exp((currentValue-center)/width) / (exp((currentValue-center)/width) + 1.0);
+  double W = (double)sqrtf((float)center*width);
+  return exp((currentValue-center)/W) / (exp((currentValue-center)/W) + 1.0)/W;
 }

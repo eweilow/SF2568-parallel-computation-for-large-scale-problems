@@ -90,54 +90,79 @@ void foxNaturalDeaths(Tile* tile, long currentTimeStep){
   }
 }
 
-bool foxHunt(Fox* fox, double foxHuntingSuccessChance, long nRabbits){
-  double draw = getRandomDouble();
-  bool success = nRabbits > 0 && draw < foxHuntingSuccessChance;
-
-  if(fox->hunger < 0.0) {
-    printf("fox->hunger < 0.0\n");
-    exit(1);
-  }
-  if(fox->hunger > 2.0) {
-    printf("fox->hunger > 2.0\n");
-    exit(1);
-  }
-
-  return success;
-}
-
 void foxHunting(Tile* tile, long currentTimeStep){
   long vegetationLevel = getVegetationLevel(tile, currentTimeStep);
   long nRabbits = getRabbitCount(tile, currentTimeStep);
+  long nStartRabbits = nRabbits;
 
   List *foxesList = getFoxes(tile, currentTimeStep);
   long foxesCount;
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
+
   for (int i=0; i<foxesCount; i++) {
-    bool isFull = (foxes + i)->hunger < 0.35;
-    if (!isFull) {
-      double foxHuntingSuccessChance = foxHuntingSuccessChanceRule(vegetationLevel, foxesCount, nRabbits);
-      bool success = foxHunt(foxes + i, foxHuntingSuccessChance, nRabbits);
+    double totalHunger = (foxes + i)->hunger + (foxes + i)->extraMeals;
+
+    bool canEat = false;
+    bool isEatingExtra = false;
+
+    long sustainablePopulation = foxesCount * 2 * 9; // The book says something about sustainable population
+    bool isUnsustainable = nRabbits < sustainablePopulation;
+
+    if(nRabbits > 0) {
+      canEat = totalHunger <= FOXES_MEALS_PER_WEEK_MAX - 1.0;
+      isEatingExtra = vegetationLevel < 0.6 && totalHunger >= FOXES_MEALS_PER_WEEK_MIN;
+    }
+
+    bool didSnacc = false;
+    if (canEat) {
+      double chanceOfSuccess = 1.0;
+
+      if(isUnsustainable) {
+        // if there are not a sustainable population, assume that foxes have a harder time rabbits
+        chanceOfSuccess *= nRabbits / (double)sustainablePopulation;
+      }
+
+      if(isEatingExtra) {
+        // if foxes are eating extra, I.E they can survive but are eating more for leisure, assume they are less effective at hunting
+        chanceOfSuccess *= 0.5;
+      }
+
+      double draw = getRandomDouble();
+      bool success = draw < chanceOfSuccess;
       if (success) {
-        //printf("succesful hunt! %d\n", success);
+        // If fox had a successful hunt...
         long rabbitToKill = getRandomInt(nRabbits);
         killRabbit(tile, rabbitToKill, currentTimeStep);
         nRabbits--;
-        (foxes + i)->hunger -= 0.35;
-      }
-      else if (foxesRiskStarvationRule(foxesCount, nRabbits)){
-        double draw = getRandomDouble();
-        if (draw < foxFailedHuntingRiskDeathChanceRule()){
-          killFox(tile, i, currentTimeStep);
-          i--; // list size is reduced??
-          foxesCount--;
-        } else {
-          (foxes + i)->hunger += 0.1;
+
+        (foxes + i)->hunger += 1.0;
+
+        // Add excess hunger to the extra meals counter
+        if((foxes + i)->hunger > FOXES_MEALS_PER_WEEK_MIN) {
+          double addToExtraMeals = (foxes + i)->hunger - FOXES_MEALS_PER_WEEK_MIN;
+          if(addToExtraMeals > 0.0) {
+            (foxes + i)->extraMeals += addToExtraMeals;
+            (foxes + i)->hunger = FOXES_MEALS_PER_WEEK_MIN;
+          }
         }
+        // truncate the extra meals counter
+        if((foxes + i)->extraMeals > FOXES_EXTRA_MEALS_PER_WEEK) {
+          (foxes + i)->extraMeals = FOXES_EXTRA_MEALS_PER_WEEK;
+        }
+
+        didSnacc = true;
       }
-    } else {
-      (foxes + i)->hunger += 0.1;
+    }
+    
+    if(!didSnacc) {
+      // foxes that did not eat get hungrier each day
+      (foxes + i)->extraMeals -= FOXES_DECREASE_PER_DAY;
+      (foxes + i)->hunger -= FOXES_DECREASE_PER_DAY;
+    }
+
+    if((foxes + i)->extraMeals < 0.0) {
+      (foxes + i)->extraMeals = 0.0;
     }
   }
 }
@@ -148,7 +173,7 @@ void killStarvedFoxes(Tile* tile, long currentTimeStep){
   Fox* foxes;
   list_read(foxesList, &foxesCount, (void**)&foxes);
   for (int i=0; i<foxesCount; i++) {
-    if ((foxes + i)->hunger >= 1.4) {
+    if ((foxes + i)->hunger <= 0) {
       killFox(tile, i, currentTimeStep);
       i--; // list size reduced??
       foxesCount--;

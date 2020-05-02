@@ -111,22 +111,5 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
     if (nFoxesAtStartOfDay > 50)
       return 3;
   }
-}
-
-double foxHuntingSuccessChanceRule(double vegetationLevel, long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay) {
-  if (nRabbitsAtStartOfDay < nFoxesAtStartOfDay || vegetationLevel >= 0.6)
-    return (double) 2.0/7.0;
-
-  return (double) 4.0/7.0;
-}
-
-double foxFailedHuntingRiskDeathChanceRule() {
-  return 0.1;
-}
-
-bool foxesRiskStarvationRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
-  if (nRabbitsAtStartOfDay < nFoxesAtStartOfDay)
-    return true;
-
-  return false;
+  return 0;
 }

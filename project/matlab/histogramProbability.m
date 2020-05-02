@@ -2,20 +2,26 @@ clf
 clear
 ages = [];
 
-center = 150;
+center = 6*28;
 span = 0:center*2;
-width = 5;
+width = 1;
 
 sigmoid = @(x, center) exp((x - center) / sqrt(center*width)) ./ (exp((x - center)/sqrt(center*width)) + 1.0) / sqrt(center*width);
 
-subplot(2,1,1);
+clf
 ages = span;
 probability = sigmoid(ages, center);
-plot(ages, probability)
+plot(ages, probability, 'LineWidth', 2)
 hold on
 lims = ylim;
 plot([center center], lims, '--', 'LineWidth', 2);
+title("Probability of death");
+xlabel("Age (days)");
+ylabel("Probability to die at given age");
 
+storeFigure("./prob1");
+
+clf
 sample = @(age) sigmoid(age, center);
 
 for i = 1:10000
@@ -32,3 +38,7 @@ xlim([0, center*2])
 hold on
 lims = ylim;
 plot([center center], lims, '--', 'LineWidth', 2);
+xlabel("Age of death (days)");
+ylabel("Frequency");
+title("Age of death");
+storeFigure("./prob2");

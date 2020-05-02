@@ -9,6 +9,9 @@ void simulateRabbitMigrations(
   for(long i=0; i < rabbitsToMigrate; i++) {
     long nextRabbit = getRandomInt(nRabbits);
     Tile* nextTile = getRandomRabbitTile(geometry, tile);
+    if(nextTile == NULL) {
+      continue;
+    }
     migrateRabbit(tile, nextTile, nextRabbit, ts);
     --nRabbits;
   }
@@ -23,6 +26,9 @@ void simulateFoxMigrations(
   long nFoxes = getFoxCount(tile, ts);
   for(long i=0; i < nFoxes; i++) {
     Tile* nextTile = getRandomFoxTile(geometry, tile);
+    if(nextTile == NULL) {
+      continue;
+    }
     migrateFox(tile, nextTile, 0, ts);
   }
 }

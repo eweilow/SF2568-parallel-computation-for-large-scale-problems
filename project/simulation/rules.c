@@ -79,8 +79,10 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
   if (nFoxesAtStartOfDay < 2)
     return 0;
 
+  double rabbitsPerFox = (double)nRabbitsAtStartOfDay / (double)nFoxesAtStartOfDay;
+
   long litterSize = 0;
-  if (nRabbitsAtStartOfDay < 3) {
+  if (rabbitsPerFox < 3) {
     if (nFoxesAtStartOfDay <= 50)
       return 2;
     if (nFoxesAtStartOfDay <= 100)
@@ -88,7 +90,7 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
     if (nFoxesAtStartOfDay > 100)
       return 0;
   }
-  if (nRabbitsAtStartOfDay >= 3 & nRabbitsAtStartOfDay < 10) {
+  if (rabbitsPerFox >= 3 && rabbitsPerFox < 10) {
     if (nFoxesAtStartOfDay <= 50)
       return 3;
     if (nFoxesAtStartOfDay <= 100)
@@ -96,7 +98,7 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
     if (nFoxesAtStartOfDay > 100)
       return 1;
   }
-  if (nRabbitsAtStartOfDay >= 10 & nRabbitsAtStartOfDay < 40) {
+  if (rabbitsPerFox >= 10 && rabbitsPerFox < 40) {
     if (nFoxesAtStartOfDay <= 10)
       return 4;
     if (nFoxesAtStartOfDay <= 100)
@@ -104,7 +106,7 @@ long foxLitterSizeRule(long nFoxesAtStartOfDay, long nRabbitsAtStartOfDay){
     if (nFoxesAtStartOfDay > 100)
       return 2;
   }
-  if (nRabbitsAtStartOfDay >= 40) {
+  if (rabbitsPerFox >= 40) {
     if (nFoxesAtStartOfDay <= 10)
       return 5;
     if (nFoxesAtStartOfDay <= 50)

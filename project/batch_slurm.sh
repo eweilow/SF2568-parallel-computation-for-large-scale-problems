@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -A <account>
 #SBATCH -n 36
-#SBATCH --time=00:30:00
+#SBATCH --time=00:05:00
 
 echo "16c"
 srun -n 16 main 4 4 &

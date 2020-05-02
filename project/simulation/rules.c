@@ -1,7 +1,8 @@
+
 ///////////////// VEGETATION /////////////////////
 
 double vegetationAtEndOfDayRule(double vegetationAtStartOfDay, long nRabbitsAtStartOfDay) {
-  double vegetationAtEndOfDay = 1.1*(vegetationAtStartOfDay - 0.001*nRabbitsAtStartOfDay);
+  double vegetationAtEndOfDay = 1.1*vegetationAtStartOfDay - (0.1 / 100.0)*nRabbitsAtStartOfDay;
   vegetationAtEndOfDay = vegetationAtEndOfDay > 1.0 ? 1.0 : vegetationAtEndOfDay;
   vegetationAtEndOfDay = vegetationAtEndOfDay < 0.1 ? 0.1 : vegetationAtEndOfDay;
   return vegetationAtEndOfDay;

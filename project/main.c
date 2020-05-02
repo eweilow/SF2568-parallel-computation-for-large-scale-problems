@@ -158,7 +158,7 @@ int main(int argc, char **argv)
   srand(0); // Deterministic random numbers on all processes
 
   // initialize geometry data on root process
-  TileGeometry geometry = generateIsland(128, 128, 1, 0.1, 0.0, processesWide, processesHigh, rank);
+  TileGeometry geometry = generateIsland(8, 8, 0, 0.1, 0.0, processesWide, processesHigh, rank);
   
   #if DEBUG_GEOMETRY
     debugGeometryAdjacency(&geometry);
@@ -172,6 +172,7 @@ int main(int argc, char **argv)
     printf("\n ***** DEBUG_TILESIMULATION sucessful ***** \n");
     return 0;
   #endif
+  
   
   for(long n = 0; n < geometry.ownTileCount; n++) {
     long i = geometry.ownTileIndices[n];

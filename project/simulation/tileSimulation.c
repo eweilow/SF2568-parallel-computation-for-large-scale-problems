@@ -106,7 +106,7 @@ void foxHunting(Tile* tile, long currentTimeStep){
     bool canEat = false;
     bool isEatingExtra = false;
 
-    long sustainablePopulation = foxesCount * 2 * 9; // The book says something about sustainable population
+    long sustainablePopulation = foxesCount * 3 * 9; // The book says something about sustainable population
     bool isUnsustainable = nRabbits < sustainablePopulation;
 
     if(nRabbits > 0) {
@@ -120,7 +120,7 @@ void foxHunting(Tile* tile, long currentTimeStep){
 
       if(isUnsustainable) {
         // if there are not a sustainable population, assume that foxes have a harder time rabbits
-        chanceOfSuccess *= nRabbits / (double)sustainablePopulation;
+        chanceOfSuccess *= (double)nRabbits / (double)sustainablePopulation;
       }
 
       if(isEatingExtra) {

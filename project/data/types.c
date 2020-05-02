@@ -24,6 +24,18 @@ typedef struct {
   List rabbitsList;
   List foxesList;
   double vegetation;
+
+#if USE_REDUCED_OUTPUT
+  long foxCount;
+  long rabbitCount;
+
+  double totalFoxHunger;
+  long totalFoxAge;
+  long totalRabbitAge;
+  
+  long maxFoxAge;
+  long maxRabbitAge;
+#endif
 } TileData;
 
 typedef struct {

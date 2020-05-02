@@ -23,6 +23,8 @@
 #define DEBUG_STEPS 0
 #define DEBUG_TILESIMULATION 0
 
+#define USE_REDUCED_OUTPUT 1
+
 #define DEBUG_CLEAR_MEMORY 0
 
 #define SAVE_DATA 0
@@ -203,6 +205,13 @@ int main(int argc, char **argv)
     printf("%ld x %ld processes: tstart = %.8lf, t = %.8lf (%ld)\n", processesWide, processesHigh, init_time_taken, time_taken, (long)CLOCKS_PER_SEC);
   }
 
+  #if USE_REDUCED_OUTPUT
+  for(long n = 0; n < geometry.ownTileCount; n++) {
+    long i = geometry.ownTileIndices[n];
+    reduceOutput(geometry.tiles + i, TIMESTEPS-1);
+  }
+  #endif
+
   // debugTiles(&geometry, TIMESTEPS - 1);
 
 
@@ -228,14 +237,28 @@ int main(int argc, char **argv)
   murderMPI();
 
   #if SAVE_DATA
-    printf("\n ***** Saving tiles ***** \n");
+    //printf("\n ***** Saving tiles ***** \n");
     char fileName[50];
-    sprintf(fileName, "./data_p%ld.bin", rank);
+    #if USE_REDUCED_OUTPUT
+      sprintf(fileName, "./data_p%ld.red.bin", rank);
+    #else
+      sprintf(fileName, "./data_p%ld.bin", rank);
+    #endif
     FILE *fp = fopen(fileName, "w");
+
+    long reduced = 0;
+    #if USE_REDUCED_OUTPUT
+      reduced = 1;
+    #endif
+    fwrite(&reduced, sizeof(long), 1, fp);
 
     fwrite(&rank, sizeof(long), 1, fp);
     fwrite(&geometry.tileCount, sizeof(long), 1, fp);
     fwrite(&geometry.tileSize, sizeof(double), 1, fp);
+#if USE_REDUCED_OUTPUT
+    long steps = (long)TIMESTEPS;
+    fwrite(&steps, sizeof(long), 1, fp);
+#endif
 
     long rabbitSize = sizeof(Rabbit);
     fwrite(&rabbitSize, sizeof(long), 1, fp);
@@ -256,6 +279,15 @@ int main(int argc, char **argv)
         for(long ts = 0; ts < tile.historicalDataCount; ts++) {
           TileData data = tile.historicalData[ts];
           fwrite(&data.vegetation, sizeof(double), 1, fp);
+#if USE_REDUCED_OUTPUT
+          fwrite(&data.foxCount, sizeof(long), 1, fp);
+          fwrite(&data.rabbitCount, sizeof(long), 1, fp);
+          fwrite(&data.totalFoxHunger, sizeof(double), 1, fp);
+          fwrite(&data.totalFoxAge, sizeof(long), 1, fp);
+          fwrite(&data.totalRabbitAge, sizeof(long), 1, fp);
+          fwrite(&data.maxFoxAge, sizeof(long), 1, fp);
+          fwrite(&data.maxRabbitAge, sizeof(long), 1, fp);
+#else
 
           long rabbitsCount;
           Rabbit *rabbits;
@@ -268,11 +300,12 @@ int main(int argc, char **argv)
           list_read(&data.foxesList, &foxesCount, (void**)&foxes);
           fwrite(&foxesCount, sizeof(long), 1, fp);
           fwrite(foxes, sizeof(Fox), foxesCount, fp);
+#endif
         }
       }
     }
     fclose(fp);
-    printf("\n ***** Data saved ***** \n");
+    //printf("\n ***** Data saved ***** \n");
   #endif
 
   #if DEBUG_CLEAR_MEMORY

@@ -23,3 +23,5 @@ project/visualizer/yarn-error.log
 
 !project/visualizer/public/art/*.png
 *.asv
+
+project/main_save

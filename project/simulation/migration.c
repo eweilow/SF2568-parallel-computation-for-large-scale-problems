@@ -28,7 +28,7 @@ bool migrateRabbit(Tile* from, Tile* to, long fromIndex, long timestep) {
   if(fromIndex < 0 || fromIndex >= fromListCount) {
     #if DEBUG_SIMULATION
       fprintf(stderr, ANSI_COLOR_RED);
-      fprintf(stderr, "[SIM.%ld] CANNOT MIGRATE RABBIT FROM tile.%lllud TO tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
+      fprintf(stderr, "[SIM.%ld] CANNOT MIGRATE RABBIT FROM tile.%llu TO tile.%llu. INVALID INDEX: %ld. EXCEEDS LIST COUNT %ld\n", timestep, from->id, to->id, fromIndex, fromListCount);
       fprintf(stderr, ANSI_COLOR_RESET);
     #endif
     return false;

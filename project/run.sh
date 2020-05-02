@@ -1,8 +1,8 @@
 set -e
 
 export OMPI_MCA_btl_vader_single_copy_mechanism=none
-mpicc -O3 -lm main.c -o main
-mpicc -O3 -DSAVE_DATA=1 -lm main.c -o main_save
+mpicc -O3 -DGEOM_CASE=1 -lm main.c -o main
+mpicc -O3 -DGEOM_CASE=1 -DSAVE_DATA=1 -lm main.c -o main_save
 
 # valgrind --suppressions=./.valgrindignore --leak-check=full ./main 1 1
 

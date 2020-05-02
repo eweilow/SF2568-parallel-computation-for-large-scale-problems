@@ -12,7 +12,10 @@
 #define GEOM_EDGE_WATER_TILES 0
 #define GEOM_WATER_PROBABILITY 0.1
 #define GEOM_OVERALL_WATER_PROBABILITY 0.0 // Set this to 0.0 to get rid of water everywhere
-#define GEOM_CASE 1 // 0, 1, or 2. It's likely good to set GEOM_OVERALL_WATER_PROBABILITY to 0 for the corner cases.
+
+#ifndef GEOM_CASE
+  #define GEOM_CASE 1 // 0, 1, or 2. It's likely good to set GEOM_OVERALL_WATER_PROBABILITY to 0 for the corner cases.
+#endif
 
 #define TIMESTEPS (365*10)
 

@@ -145,6 +145,10 @@ int main(int argc, char **argv)
     return 0;
   }
 
+  clock_t initStart, initEnd, start, end; 
+  MPI_Barrier(MPI_COMM_WORLD);
+  initStart = clock(); 
+
   List *sendRabbitsLists = (List*) malloc(N * sizeof(List));
   List *sendFoxesList = (List*) malloc(N * sizeof(List));
 
@@ -154,9 +158,6 @@ int main(int argc, char **argv)
     debugBinary(id >> 40, sizeof(u_int64_t)*8);
   #endif
 
-  clock_t initStart, initEnd, start, end; 
-  MPI_Barrier(MPI_COMM_WORLD);
-  initStart = clock(); 
 
   ProcessAdjacency processAdjacency = getAdjacency(rank, processesWide, processesHigh);
   for(long n = 0; n < ADJACENT_PROCESSES; n++) {

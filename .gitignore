@@ -25,3 +25,5 @@ project/visualizer/yarn-error.log
 *.asv
 
 project/main_save
+
+project/main_large

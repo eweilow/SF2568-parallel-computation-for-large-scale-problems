@@ -79,59 +79,84 @@ end
 
 %%
 
+runName = "run1";
+
 foxesDeadIndex = find(~sum(foxCount));
 
 tspan = timesteps;
 if ~isempty(foxesDeadIndex)
   %tspan = foxesDeadIndex(1)
 end
-xlims = [0 tspan]
+xlims = [0 tspan] / 7;
 
 indices = 1:timesteps;
+indices = indices / 7;
 
-clf
-subplot(2,3,1);
-plot(indices, sum(rabbitCount) / tileCount, 'LineWidth', 2, 'DisplayName', 'Rabbits')
+close all
+
+semilogy(indices, sum(rabbitCount) / tileCount, 'LineWidth', 2, 'DisplayName', 'Rabbits')
+hold on
+semilogy(indices, sum(foxCount) / tileCount, 'LineWidth', 2, 'DisplayName', 'Foxes')
 % plot(sum(rabbitCount), 'DisplayName', 'Rabbits')
 % hold on
 % plot(sum(foxCount), 'DisplayName', 'Foxes')
-title("Average rabbits per tile");
+xlabel("Week");
+title("Average count of animals per tile");
 legend('show', 'Location', 'Best')
 xlim(xlims)
+storeFigure(sprintf("%s-averageAnimals", runName));
+clf
 
-subplot(2,3,2);
+semilogy(indices, sum(rabbitCount) / tileCount, 'LineWidth', 2, 'DisplayName', 'Rabbits')
+% plot(sum(rabbitCount), 'DisplayName', 'Rabbits')
+% hold on
+% plot(sum(foxCount), 'DisplayName', 'Foxes')
+xlabel("Week");
+title("Average rabbits per tile");
+xlim(xlims)
+storeFigure(sprintf("%s-averageRabbits", runName));
+clf
+
 % plot(indices, sum(rabbitCount) / tileCount, 'LineWidth', 1, 'DisplayName', 'Rabbits')
 plot(indices, sum(foxCount) / tileCount, 'LineWidth', 2, 'DisplayName', 'Foxes')
+xlabel("Week");
 title("Average foxes per tile");
-legend('show', 'Location', 'Best')
 xlim(xlims)
+storeFigure(sprintf("%s-averageFoxes", runName));
+clf
 
-subplot(2,3,3);
 totalRabbitAgePerTile = sum(totalRabbitAge)./max(1, sum(rabbitCount));
-plot(totalRabbitAgePerTile, 'LineWidth', 1,  'DisplayName', 'Rabbits')
+plot(indices, totalRabbitAgePerTile, 'LineWidth', 2,  'DisplayName', 'Rabbits')
 hold on
 totalFoxAgePerTile = sum(totalFoxAge)./max(1, sum(foxCount));
-plot(totalFoxAgePerTile, 'LineWidth', 1,  'DisplayName', 'Foxes')
-title("Age");
+plot(indices, totalFoxAgePerTile, 'LineWidth', 2,  'DisplayName', 'Foxes')
+xlabel("Week");
+title("Average age");
 legend('show', 'Location', 'Best')
-xlim(xlims)
+storeFigure(sprintf("%s-averageAge", runName));
+clf
 
-subplot(2,3,4);
-plot(sum(totalFoxHunger)./max(1, sum(foxCount)), 'LineWidth', 1,  'DisplayName', 'Foxes')
+plot(indices, sum(totalFoxHunger)./max(1, sum(foxCount)), 'LineWidth', 2,  'DisplayName', 'Foxes')
 title("Average hunger");
-legend('show', 'Location', 'Best')
+% legend('show', 'Location', 'Best')
 xlim(xlims)
+xlabel("Week");
+storeFigure(sprintf("%s-averageHunger", runName));
+clf
 
-subplot(2,3,5);
-plot(sum(vegetation) / tileCount)
+plot(indices, sum(vegetation) / tileCount, 'LineWidth', 2)
 ylim([0 1.1])
 xlim(xlims)
 title("Vegetation");
-
-subplot(2,3,6);
-plot(max(maxRabbitAge), 'LineWidth', 1,  'DisplayName', 'Rabbits')
-hold on
-plot(max(maxFoxAge), 'LineWidth', 1,  'DisplayName', 'Foxes')
-title("Max age");
-legend('show', 'Location', 'Best')
-xlim(xlims)
+xlabel("Week");
+storeFigure(sprintf("%s-vegetation", runName));
+clf
+% 
+% subplot(2,3,6);
+% plot(max(maxRabbitAge), 'LineWidth', 1,  'DisplayName', 'Rabbits')
+% hold on
+% plot(max(maxFoxAge), 'LineWidth', 1,  'DisplayName', 'Foxes')
+% title("Max age");
+% legend('show', 'Location', 'Best')
+% xlim(xlims)
+% storeFigure(sprintf("%s-vegetation", runName));

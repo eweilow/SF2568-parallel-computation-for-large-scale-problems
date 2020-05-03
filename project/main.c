@@ -6,9 +6,6 @@
 #include <time.h>
 #include <mpi.h>
 
-#define GEOM_W 8
-#define GEOM_H 8
-
 #define GEOM_EDGE_WATER_TILES 0
 #define GEOM_WATER_PROBABILITY 0.1
 #define GEOM_OVERALL_WATER_PROBABILITY 0.0 // Set this to 0.0 to get rid of water everywhere

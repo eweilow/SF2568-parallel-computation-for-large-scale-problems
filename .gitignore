@@ -11,3 +11,19 @@ hw1/read.asv
 hw2/data/data.bin
 
 hw2/data/
+
+project/main
+
+project/*.bin
+
+
+.next
+node_modules
+project/visualizer/yarn-error.log
+
+!project/visualizer/public/art/*.png
+*.asv
+
+project/main_save
+
+project/main_large
